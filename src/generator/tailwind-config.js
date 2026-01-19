@@ -4,33 +4,144 @@
  * @returns {string} - The generated configuration file content.
  */
 function generateTailwindConfig(tokens) {
-  const { colorTokens, spatialTokens, typographyTokens } = tokens;
+  const { colorTokens, spatialTokens, typographyTokens, interactionTokens } = tokens;
+
+  // Build comprehensive Tailwind configuration template
+  const config = {
+    content: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+    theme: {
+      extend: {
+        colors: buildColorTheme(colorTokens),
+        spacing: buildSpacingTheme(spatialTokens),
+        maxWidth: buildMaxWidthTheme(spatialTokens),
+        fontSize: buildFontSizeTheme(typographyTokens),
+        fontFamily: buildFontFamilyTheme(typographyTokens),
+        transitionDuration: buildTransitionTheme(interactionTokens),
+        boxShadow: buildShadowTheme(interactionTokens)
+      }
+    },
+    plugins: []
+  };
 
   return `/** @type {import('tailwindcss').Config} */
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        brand: {
-          primary: '${colorTokens.primaryAction}',
-          secondary: '${colorTokens.secondaryAction}',
-          surface: '${colorTokens.surface}',
-        },
-        text: {
-          main: '${colorTokens.textMain}',
-          muted: '${colorTokens.textMuted}',
-        }
-      },
-      spacing: {
-        'base-unit': '${spatialTokens.baseUnit}px',
-        'gutter': '${spatialTokens.containerPadding}px',
-      },
-      maxWidth: {
-        'container': '${spatialTokens.maxWidth || '1280'}px',
-      }
+module.exports = ${JSON.stringify(config, null, 2)};`;
+}
+
+/**
+ * Builds color theme extension from color tokens.
+ * @param {Object} colorTokens - Color tokens from analysis.
+ * @returns {Object} - Tailwind color configuration.
+ */
+function buildColorTheme(colorTokens) {
+  if (!colorTokens) return {};
+  
+  const colors = {
+    brand: {
+      primary: colorTokens.primaryAction || '#3b82f6',
+      secondary: colorTokens.secondaryAction || '#8b5cf6',
+      surface: colorTokens.surface || '#ffffff',
+    },
+    text: {
+      main: colorTokens.textMain || '#000000',
+      muted: colorTokens.textMuted || '#6b7280',
     }
+  };
+  
+  // Add semantic colors if available
+  if (colorTokens.success) colors.success = colorTokens.success;
+  if (colorTokens.warning) colors.warning = colorTokens.warning;
+  if (colorTokens.error) colors.error = colorTokens.error;
+  if (colorTokens.info) colors.info = colorTokens.info;
+  
+  return colors;
+}
+
+/**
+ * Builds spacing theme extension from spatial tokens.
+ * @param {Object} spatialTokens - Spatial tokens from analysis.
+ * @returns {Object} - Tailwind spacing configuration.
+ */
+function buildSpacingTheme(spatialTokens) {
+  if (!spatialTokens) return {};
+  
+  return {
+    'base-unit': `${spatialTokens.baseUnit || 8}px`,
+    'gutter': `${spatialTokens.containerPadding || 16}px`,
+  };
+}
+
+/**
+ * Builds max-width theme extension from spatial tokens.
+ * @param {Object} spatialTokens - Spatial tokens from analysis.
+ * @returns {Object} - Tailwind max-width configuration.
+ */
+function buildMaxWidthTheme(spatialTokens) {
+  if (!spatialTokens) return {};
+  
+  return {
+    'container': `${spatialTokens.maxWidth || 1280}px`,
+  };
+}
+
+/**
+ * Builds font-size theme extension from typography tokens.
+ * @param {Object} typographyTokens - Typography tokens from analysis.
+ * @returns {Object} - Tailwind font-size configuration.
+ */
+function buildFontSizeTheme(typographyTokens) {
+  if (!typographyTokens || !typographyTokens.scale) return {};
+  
+  const fontSizes = {};
+  typographyTokens.scale.forEach((size, index) => {
+    fontSizes[`scale-${index}`] = `${size}px`;
+  });
+  
+  return fontSizes;
+}
+
+/**
+ * Builds font-family theme extension from typography tokens.
+ * @param {Object} typographyTokens - Typography tokens from analysis.
+ * @returns {Object} - Tailwind font-family configuration.
+ */
+function buildFontFamilyTheme(typographyTokens) {
+  if (!typographyTokens) return {};
+  
+  const families = {};
+  if (typographyTokens.primaryFont) {
+    families.primary = [typographyTokens.primaryFont, 'sans-serif'];
   }
-};`;
+  if (typographyTokens.secondaryFont) {
+    families.secondary = [typographyTokens.secondaryFont, 'serif'];
+  }
+  
+  return families;
+}
+
+/**
+ * Builds transition duration theme from interaction tokens.
+ * @param {Object} interactionTokens - Interaction tokens from analysis.
+ * @returns {Object} - Tailwind transition duration configuration.
+ */
+function buildTransitionTheme(interactionTokens) {
+  if (!interactionTokens || !interactionTokens.hover) return {};
+  
+  return {
+    'hover': interactionTokens.hover.transitionDuration || '200ms',
+  };
+}
+
+/**
+ * Builds box-shadow theme from interaction tokens.
+ * @param {Object} interactionTokens - Interaction tokens from analysis.
+ * @returns {Object} - Tailwind box-shadow configuration.
+ */
+function buildShadowTheme(interactionTokens) {
+  if (!interactionTokens || !interactionTokens.hover) return {};
+  
+  return {
+    'hover': interactionTokens.hover.shadowEffect || '0 4px 8px rgba(0,0,0,0.1)',
+  };
 }
 
 module.exports = { generateTailwindConfig };
