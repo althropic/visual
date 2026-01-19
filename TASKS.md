@@ -4,12 +4,13 @@
 
 ## Active
 
+## Done
+
 ### Extraction: Run on google.com (Test the design extraction process)
 - [x] Configure .env with valid API key
 - [x] Run `node bin/cli.js https://google.com`
 - [x] Verify `DESIGN.md` output
-
-## Done
+- [x] Fix LLM JSON parsing errors with fallback mechanism
 
 ### LLM: Configure local provider support (Update client to support custom base URL and model ID)
 - [x] Update `src/llm/client.js` to support `OPENAI_BASE_URL` and `OPENAI_MODEL`
