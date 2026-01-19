@@ -81,3 +81,61 @@ function analyzeSpatial(styleData) {
 }
 
 module.exports = { analyzeSpatial };
+
+
+/**
+ * Analyzes layout fulcrum patterns (asymmetric spacing).
+ * @param {Array} styleData - Array of element style data from the scraper.
+ * @returns {Object} - Layout fulcrum analysis including main container margins.
+ */
+function analyzeLayoutFulcrum(styleData) {
+  const mainContainers = [];
+  
+  // Find potential main content containers
+  styleData.forEach(item => {
+    const rect = item.rect;
+    const styles = item.styles;
+    
+    // Look for large containers that might be main content areas
+    const isLargeContainer = rect.width > 400 && rect.height > 300;
+    const hasMargin = styles.marginLeft && parseFloat(styles.marginLeft) > 0;
+    const isPositioned = rect.x > 0;
+    
+    if (isLargeContainer && (hasMargin || isPositioned)) {
+      mainContainers.push({
+        tagName: item.tagName,
+        className: item.className,
+        marginLeft: parseFloat(styles.marginLeft) || 0,
+        marginRight: parseFloat(styles.marginRight) || 0,
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        maxWidth: styles.maxWidth
+      });
+    }
+  });
+  
+  // Sort by size (largest first)
+  mainContainers.sort((a, b) => (b.width * b.height) - (a.width * a.height));
+  
+  // Analyze asymmetry
+  const asymmetricContainers = mainContainers.filter(c => 
+    Math.abs(c.marginLeft - c.marginRight) > 20
+  );
+  
+  // Calculate average left offset
+  const avgLeftOffset = mainContainers.length > 0
+    ? mainContainers.reduce((sum, c) => sum + c.x, 0) / mainContainers.length
+    : 0;
+  
+  return {
+    mainContainers: mainContainers.slice(0, 5),
+    asymmetricContainers,
+    avgLeftOffset,
+    hasAsymmetry: asymmetricContainers.length > 0,
+    dominantMarginLeft: mainContainers[0]?.marginLeft || 0
+  };
+}
+
+module.exports = { analyzeSpatial, analyzeLayoutFulcrum };
