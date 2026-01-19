@@ -73,7 +73,7 @@ Rules and templates for AI agents. Read this at session start.
    - Commit with message: `git commit -m "<type>: <description>"`
    - Do NOT ask user permission to commit
    - Commit automatically as part of your workflow
-   - Never commit TASKS.md, keep it local.
+   - Never commit TASKS.md and LOG.md. Keep them local.
 
 4. **Atomic Commits:**
    - One logical change per commit
@@ -93,7 +93,7 @@ Rules and templates for AI agents. Read this at session start.
    ```
    # Documentation (keep local)
    TASKS.md
-   !README.md
+   LOG.md
    
    # Dependencies
    node_modules/

@@ -1,13 +1,12 @@
 # Documentation (keep local)
 TASKS.md
-!README.md
+LOG.md
 
 # Other markdown files (tracked)
 # !AGENTS.md
 # !GUIDE.md
 # !CONTEXT.md
-# !LOG.md
-
+# !README.md
 
 # Dependencies
 node_modules/
