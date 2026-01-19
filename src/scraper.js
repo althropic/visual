@@ -94,11 +94,12 @@ async function scrape(url) {
     // Handle actual hover capture for detected interactive elements
     const interactiveElements = data.filter(item => item.isInteractive).slice(0, 15); // Increase limit to 15 for better coverage
     for (const item of interactiveElements) {
+      // Define selector outside try block so it's available in catch
+      const selector = item.id ? `#${CSS.escape(item.id)}` : 
+                      item.className ? `.${CSS.escape(item.className.split(' ')[0])}` : 
+                      item.tagName.toLowerCase();
+      
       try {
-        const selector = item.id ? `#${CSS.escape(item.id)}` : 
-                        item.className ? `.${CSS.escape(item.className.split(' ')[0])}` : 
-                        item.tagName.toLowerCase();
-        
         // Try multiple strategies to hover over the element
         try {
           await page.hover(selector);
