@@ -1,48 +1,62 @@
-# bioses-incite
+# design-extractor-auto
 
-Brief project description.
+Automated design system extractor that generates a `DESIGN.md` manifesto from any URL.
 
 ## Overview
-
-[What this project does and why it exists.]
+This tool navigates to a target URL, extracts computed styles from visible DOM nodes, and uses heuristic analysis combined with LLM reasoning (GPT-4o) to identify and document the underlying design system (colors, spacing, typography).
 
 ## Getting Started
 
-1. Clone the repository
-2. Review `AGENTS.md` for project standards
-3. Start coding in `src/`
+### Prerequisites
+- Node.js (LTS)
+- OpenAI API Key
 
-> **Note:** This project uses Genesis scaffolding. Derived files (CONTEXT.md, TASKS.md) are created by AI agents on-demand.
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   - Create a `.env` file based on `.env.example`
+   - Add your `OPENAI_API_KEY`
+
+## Usage
+
+### CLI
+Run the extractor from the command line:
+```bash
+node bin/cli.js <url> [output-path]
+```
+Example:
+```bash
+node bin/cli.js https://example.com my-design.md
+```
+
+### Programmatic API
+```javascript
+const { extractDesign } = require('./src/index');
+
+(async () => {
+  const tokens = await extractDesign('https://example.com');
+  console.log('Detected Tokens:', tokens);
+})();
+```
+
+## Output Format (`DESIGN.md`)
+The generated manifesto follows the "Groundwork" principles:
+- **Color Palette:** Semantic roles (Primary Action, Surface, etc.) assigned to hex values.
+- **Spatial System:** Detected base unit (e.g., 8pt grid) and common spacing patterns.
+- **Typography Hierarchy:** Geometric scale mapping and base font sizes.
 
 ## Project Structure
+- `src/scraper.js`: Playwright extraction engine.
+- `src/analyzer/`: Heuristic clustering for colors and spatial patterns.
+- `src/llm/`: OpenAI GPT-4o semantic mapping integration.
+- `src/generator/`: Markdown manifesto formatter.
+- `bin/cli.js`: Command-line interface.
 
-```
-bioses-incite/
-├── src/              # Source code
-├── tests/            # Test files
-├── AGENTS.md         # AI agent rules and templates
-├── GUIDE.md          # Human operator guide
-├── LOG.md            # Session activity log
-├── README.md         # This file
-└── .gitignore        # Git ignore patterns
-```
-
-## Workflow
-
-See `GUIDE.md` for detailed workflow instructions and prompt library.
-
-Quick start:
-1. Tell your AI agent: "Read AGENTS.md, create CONTEXT.md and TASKS.md"
-2. Define your objectives in CONTEXT.md
-3. Let the agent populate TASKS.md with atomic tasks
-4. Start executing tasks one at a time
-
-## Rules
-
-This project follows strict task management rules defined in `AGENTS.md`:
-- Exactly 1 task in Active at a time
-- Every task broken into 2-5 atomic sub-steps
-- Automatic commits after each sub-step
-- Sequential sub-step completion (no skipping)
-
-For the complete rule set, see `AGENTS.md`.
+## Troubleshooting
+- **Missing API Key:** Ensure `OPENAI_API_KEY` is set in your `.env` file.
+- **Navigation Timeout:** Increase the timeout in `src/scraper.js` if the target site is slow.
+- **Playwright Errors:** Ensure browser binaries are installed via `npx playwright install`.
