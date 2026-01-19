@@ -91,8 +91,8 @@ async function scrape(url) {
       return results;
     });
 
-    // Handle actual hover capture for detected interactive elements
-    const interactiveElements = data.filter(item => item.isInteractive).slice(0, 15); // Increase limit to 15 for better coverage
+    // Handle actual hover capture for detected interactive elements with delta calculation
+    const interactiveElements = data.filter(item => item.isInteractive).slice(0, 15);
     for (const item of interactiveElements) {
       // Define selector outside try block so it's available in catch
       // Simple CSS escape for IDs and classes
@@ -102,6 +102,22 @@ async function scrape(url) {
                       item.tagName.toLowerCase();
       
       try {
+        // Capture normal state first
+        const normalStyles = await page.evaluate((sel) => {
+          const el = document.querySelector(sel);
+          if (!el) return null;
+          const s = window.getComputedStyle(el);
+          return {
+            color: s.color,
+            backgroundColor: s.backgroundColor,
+            transform: s.transform,
+            boxShadow: s.boxShadow,
+            borderColor: s.borderColor,
+            opacity: s.opacity,
+            textDecoration: s.textDecoration
+          };
+        }, selector);
+        
         // Try multiple strategies to hover over the element
         try {
           await page.hover(selector);
@@ -120,17 +136,16 @@ async function scrape(url) {
           }
         }
         
-        // Wait longer for transitions to complete (increased from 200ms to 500ms)
+        // Wait longer for transitions to complete
         await page.waitForTimeout(500);
 
-        const hStyles = await page.evaluate((sel) => {
+        const hoverStyles = await page.evaluate((sel) => {
           const el = document.querySelector(sel);
           if (!el) return null;
           const s = window.getComputedStyle(el);
           
           // Capture comprehensive hover state styles
           return {
-            // Text styles
             color: s.color,
             backgroundColor: s.backgroundColor,
             fontFamily: s.fontFamily,
@@ -138,31 +153,40 @@ async function scrape(url) {
             fontWeight: s.fontWeight,
             textDecoration: s.textDecoration,
             textShadow: s.textShadow,
-            
-            // Box styles
             boxShadow: s.boxShadow,
             transform: s.transform,
             borderColor: s.borderColor,
             borderWidth: s.borderWidth,
             borderStyle: s.borderStyle,
             borderRadius: s.borderRadius,
-            
-            // Layout styles
             opacity: s.opacity,
             filter: s.filter,
             backdropFilter: s.backdropFilter,
-            
-            // Transition styles
             transition: s.transition,
-            
-            // Positioning
             zIndex: s.zIndex,
             position: s.position
           };
         }, selector);
 
-        if (hStyles) {
-          item.hoverStyles = hStyles;
+        if (hoverStyles && normalStyles) {
+          // Calculate the delta (what actually changed)
+          const delta = {};
+          for (const [key, hoverValue] of Object.entries(hoverStyles)) {
+            const normalValue = normalStyles[key];
+            if (hoverValue !== normalValue) {
+              delta[key] = {
+                from: normalValue,
+                to: hoverValue
+              };
+            }
+          }
+          
+          // Store both hover styles and the delta
+          item.hoverStyles = hoverStyles;
+          item.hoverDelta = delta;
+        } else if (hoverStyles) {
+          // Fallback if we couldn't capture normal state
+          item.hoverStyles = hoverStyles;
         }
       } catch (e) {
         // Log error for debugging but continue with other elements
