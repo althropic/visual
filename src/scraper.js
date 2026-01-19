@@ -98,7 +98,7 @@ async function scrape(url) {
       // Simple CSS escape for IDs and classes
       const escapeCSS = (str) => str.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
       const selector = item.id ? `#${escapeCSS(item.id)}` : 
-                      item.className ? `.${escapeCSS(item.className.split(' ')[0])}` : 
+                      (item.className && typeof item.className === 'string') ? `.${escapeCSS(item.className.split(' ')[0])}` : 
                       item.tagName.toLowerCase();
       
       try {
