@@ -5,9 +5,9 @@
 ## Active
 
 ### Extraction: Run on google.com (Test the design extraction process)
-- [ ] Configure .env with valid API key
-- [ ] Run `node bin/cli.js https://google.com`
-- [ ] Verify `DESIGN.md` output
+- [x] Configure .env with valid API key
+- [x] Run `node bin/cli.js https://google.com`
+- [x] Verify `DESIGN.md` output
 
 ## Done
 
