@@ -57,7 +57,7 @@ function buildTreePatterns(styleData) {
     // Create a pattern signature that includes parent and children
     const patternParts = [
       item.tagName,
-      ...(item.className ? item.className.split(' ') : []),
+      ...(item.className && typeof item.className === 'string' ? item.className.split(' ') : []),
       ...childStructure.map(child => `>${child}`)
     ];
     
@@ -576,7 +576,7 @@ function extractVariants(elements, componentType) {
   // Group elements by className patterns
   elements.forEach(element => {
     const className = element.className || '';
-    const classes = className.split(' ').filter(c => c);
+    const classes = typeof className === 'string' ? className.split(' ').filter(c => c) : [];
     
     // Create a signature based on class variations
     const variantKey = classes.sort().join(' ');
