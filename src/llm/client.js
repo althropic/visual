@@ -1,9 +1,19 @@
 const OpenAI = require('openai');
 require('dotenv').config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize lazily to avoid errors during testing/mocking
+let openai;
+function getClient() {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('Missing OPENAI_API_KEY environment variable');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 /**
  * Uses LLM to assign semantic roles to raw style values.
@@ -25,7 +35,8 @@ async function mapSemanticRoles(data) {
     - typographyTokens: { scaleType, baseSize }
   `;
 
-  const response = await openai.chat.completions.create({
+  const client = getClient();
+  const response = await client.chat.completions.create({
     model: "gpt-4o",
     messages: [
       { role: "system", content: "You are a design systems expert." },
