@@ -326,22 +326,6 @@ export default function ${componentName}({ children, className = '', ...props })
 }
 
 /**
- * ${atom.role} component
- * @param {Object} props - Component props
- */
-export default function ${componentName}({ children, className = '', ...props }) {
-  return (
-    <${atom.tagName.toLowerCase()} 
-      className={\`inline-flex items-center justify-center px-4 py-2 rounded \${className}\`}
-      {...props}
-    >
-      {children}
-    </${atom.tagName.toLowerCase()}>
-  );
-}`;
-}
-
-/**
  * Generates fallback molecule component code when LLM fails.
  * @param {Object} molecule - Molecule specification.
  * @returns {string} - Fallback React component code.
