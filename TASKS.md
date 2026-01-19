@@ -2,7 +2,50 @@
 
 ## Backlog
 
+### Scraper: Implement "Hover" state capture (Capture dynamic computed styles on hover events)
+- [ ] Identify interactive elements (buttons, links)
+- [ ] Trigger hover event and wait for transitions
+- [ ] Extract state-specific style data
+- [ ] Map state changes to CSS tokens
+
+### Analysis: Implement Archetypal Component detection (Find frequent element trees and group into components)
+- [ ] Build element tree pattern analyzer
+- [ ] Use frequency analysis to group similar structures
+- [ ] Identify Atoms (buttons), Molecules (cards), and Shells (nav)
+- [ ] Generate component style specifications
+
+### Analysis: Build Color Scale generator (Calculate 50-950 tints from primary colors)
+- [ ] Implement tint/shade generation using chroma-js
+- [ ] Create semantic color palette (Action, Surface, Text)
+- [ ] Export color tokens for CSS and Tailwind
+
+### Asset: Implement logo and favicon extractor (Capture visual identity assets)
+- [ ] Find highest z-index image in top-left quadrant
+- [ ] Extract SVG or raster logo assets
+- [ ] Download site favicon and identity icons
+
+### Generator: Create Tailwind configuration builder (Generate automated tailwind.config.js)
+- [ ] Build tailwind configuration template
+- [ ] Inject detected tokens into theme extension
+- [ ] Export production-ready config file
+
+### Generator: Create React Component snippet builder (Generate React + Tailwind components from analysis)
+- [ ] Design LLM prompt for component generation
+- [ ] Generate functional React components for identified archetypes
+- [ ] Export component library to dist/
+
+### Integration: Update main pipeline for "Design Package" output (Orchestrate full extraction and implementation flow)
+- [ ] Create dist/ folder structure
+- [ ] Wire up asset extraction and code generation
+- [ ] Update CLI to output full design system bundle
+
 ## Active
+
+### Analysis: Build spatial "Gutter Symmetry" detector (Identify container max-width and layout gutters)
+- [x] Analyze horizontal alignment patterns across page
+- [x] Identify primary content container max-widths
+- [x] Detect consistent gutter and margin patterns
+- [x] Map layout tokens for CSS and Tailwind
 
 ## Done
 
@@ -10,7 +53,6 @@
 - [x] Configure .env with valid API key
 - [x] Run `node bin/cli.js https://google.com`
 - [x] Verify `DESIGN.md` output
-- [x] Fix LLM JSON parsing errors with fallback mechanism
 
 ### LLM: Configure local provider support (Update client to support custom base URL and model ID)
 - [x] Update `src/llm/client.js` to support `OPENAI_BASE_URL` and `OPENAI_MODEL`
