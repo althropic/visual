@@ -40,19 +40,59 @@ async function mapSemanticRoles(data) {
     - colorTokens: { primaryAction, secondaryAction, surface, textMain, textMuted }
     - spatialTokens: { baseUnit, containerPadding, stackGap }
     - typographyTokens: { scaleType, baseSize }
+    
+    IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.
   `;
 
   const client = getClient();
-  const response = await client.chat.completions.create({
-    model: process.env.OPENAI_MODEL || "gpt-4o",
-    messages: [
-      { role: "system", content: "You are a design systems expert." },
-      { role: "user", content: prompt }
-    ],
-    response_format: { type: "json_object" }
-  });
+  
+  try {
+    const response = await client.chat.completions.create({
+      model: process.env.OPENAI_MODEL || "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a design systems expert. Always respond with valid JSON only." },
+        { role: "user", content: prompt }
+      ],
+      // Remove response_format for local providers that don't support it
+      ...(process.env.OPENAI_BASE_URL ? {} : { response_format: { type: "json_object" } })
+    });
 
-  return JSON.parse(response.choices[0].message.content);
+    let content = response.choices[0].message.content;
+    
+    // Extract JSON from markdown code blocks if present
+    const jsonMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+    if (jsonMatch) {
+      content = jsonMatch[1];
+    }
+    
+    // Clean up any leading/trailing whitespace
+    content = content.trim();
+    
+    return JSON.parse(content);
+  } catch (error) {
+    console.error('LLM API Error:', error.message);
+    console.error('Using fallback semantic mapping...');
+    
+    // Fallback: return a basic structure based on the data
+    return {
+      colorTokens: {
+        primaryAction: data.colors.palette?.[0] || '#000000',
+        secondaryAction: data.colors.palette?.[1] || '#666666',
+        surface: data.colors.palette?.[2] || '#ffffff',
+        textMain: data.colors.palette?.[3] || '#000000',
+        textMuted: data.colors.palette?.[4] || '#999999'
+      },
+      spatialTokens: {
+        baseUnit: data.spatial.baseUnit || 8,
+        containerPadding: data.spatial.commonSpacing?.[0] || 16,
+        stackGap: data.spatial.commonSpacing?.[1] || 8
+      },
+      typographyTokens: {
+        scaleType: 'Major Third',
+        baseSize: '16px'
+      }
+    };
+  }
 }
 
 module.exports = { mapSemanticRoles };
