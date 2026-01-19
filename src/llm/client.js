@@ -35,12 +35,18 @@ async function mapSemanticRoles(data) {
     Data:
     Colors: ${JSON.stringify(data.colors)}
     Spatial: ${JSON.stringify(data.spatial)}
+    Typography: ${JSON.stringify(data.typography)}
     Hover States: ${JSON.stringify(data.hoverStates || {})}
     
     Return a structured JSON object with the following keys:
     - colorTokens: { primaryAction, secondaryAction, surface, textMain, textMuted }
     - spatialTokens: { baseUnit, containerPadding, stackGap }
-    - typographyTokens: { scaleType, baseSize }
+    - typographyTokens: { 
+        scaleType: "${data.typography?.scaleName || 'Custom'}",
+        scaleRatio: ${data.typography?.scaleRatio || 1.25},
+        baseSize: "${data.typography?.bodySize || 16}px",
+        primaryFont: "${data.typography?.primaryFont || 'system-ui'}"
+      }
     - interactionTokens: { 
         hover: {
           colorShift: string,
@@ -97,8 +103,10 @@ async function mapSemanticRoles(data) {
         stackGap: data.spatial.commonSpacing?.[1] || 8
       },
       typographyTokens: {
-        scaleType: 'Major Third',
-        baseSize: '16px'
+        scaleType: data.typography?.scaleName || 'Custom',
+        scaleRatio: data.typography?.scaleRatio || 1.25,
+        baseSize: `${data.typography?.bodySize || 16}px`,
+        primaryFont: data.typography?.primaryFont || 'system-ui'
       },
       interactionTokens: {
         hover: {

@@ -3,6 +3,7 @@ const { analyzeColors } = require('./analyzer/colors');
 const { analyzeSpatial } = require('./analyzer/spatial');
 const { analyzeArchetypes } = require('./analyzer/archetypes');
 const { analyzeHoverStates } = require('./analyzer/hover');
+const { analyzeTypography, generateTypographyScale } = require('./analyzer/typography');
 const { analyzeAssets, extractLogos, downloadFavicons } = require('./analyzer/assets');
 const { mapSemanticRoles } = require('./llm/client');
 const { generateDesignDoc } = require('./generator/design-md');
@@ -33,6 +34,7 @@ async function extractDesign(url, outputDir = 'dist') {
     console.log('Analyzing colors and spatial patterns...');
     const colors = analyzeColors(styles);
     const spatial = analyzeSpatial(styles);
+    const typography = analyzeTypography(styles);
     
     console.log('Identifying archetypal components...');
     const archetypes = analyzeArchetypes(styles);
@@ -52,7 +54,7 @@ async function extractDesign(url, outputDir = 'dist') {
 
     // 3. LLM Semantic Mapping & Component Generation
     console.log('Mapping semantic roles and generating components via LLM...');
-    const designData = await mapSemanticRoles({ colors, spatial, archetypes, hoverStates, assets: { topLeftImage, logos, favicons: downloadedFavicons } });
+    const designData = await mapSemanticRoles({ colors, spatial, typography, archetypes, hoverStates, assets: { topLeftImage, logos, favicons: downloadedFavicons } });
     
     // Generate React components from archetypes
     console.log('Generating React components from archetypes...');
