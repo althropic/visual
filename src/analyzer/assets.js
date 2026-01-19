@@ -47,7 +47,7 @@ async function downloadFavicons(favicons, outputDir, page) {
   const path = require('path');
   
   // Create assets directory if it doesn't exist
-  const assetsDir = path.join(outputDir, 'assets');
+  const assetsDir = path.join(outputDir, 'assets', 'favicons');
   try {
     await fs.mkdir(assetsDir, { recursive: true });
   } catch (err) {
@@ -81,6 +81,75 @@ async function downloadFavicons(favicons, outputDir, page) {
   }
   
   return downloadedFavicons;
+}
+
+/**
+ * Downloads logo and image assets.
+ * @param {Array} images - Array of image objects.
+ * @param {string} outputDir - Directory to save the images.
+ * @param {Object} page - Playwright page object for downloading.
+ * @returns {Promise<Array>} - Array of downloaded image file paths.
+ */
+async function downloadLogos(images, outputDir, page) {
+  const fs = require('fs').promises;
+  const path = require('path');
+  
+  // Create logos directory
+  const logosDir = path.join(outputDir, 'assets', 'logos');
+  try {
+    await fs.mkdir(logosDir, { recursive: true });
+  } catch (err) {
+    console.warn('Could not create logos directory:', err);
+  }
+  
+  const downloadedLogos = [];
+  
+  // Filter for potential logos
+  const potentialLogos = images.filter(img => {
+    const srcLower = img.src.toLowerCase();
+    const altLower = img.alt?.toLowerCase() || '';
+    
+    // Check for logo keywords
+    const hasLogoKeyword = srcLower.includes('logo') || altLower.includes('logo') ||
+                          srcLower.includes('brand') || altLower.includes('brand');
+    
+    // Check for reasonable size (not too small, not too large)
+    const reasonableSize = img.width >= 50 && img.width <= 500 && 
+                          img.height >= 20 && img.height <= 200;
+    
+    // Check for top-left position (common logo placement)
+    const topLeft = img.x <= 400 && img.y <= 200;
+    
+    return (hasLogoKeyword || topLeft) && reasonableSize;
+  });
+  
+  // Download top 5 potential logos
+  for (const logo of potentialLogos.slice(0, 5)) {
+    try {
+      // Generate filename
+      const url = new URL(logo.src);
+      const fileName = path.basename(url.pathname) || `logo-${Date.now()}.png`;
+      const filePath = path.join(logosDir, fileName);
+      
+      // Download the image
+      const response = await page.request.get(logo.src);
+      if (response.ok()) {
+        const buffer = await response.body();
+        await fs.writeFile(filePath, buffer);
+        downloadedLogos.push({
+          src: logo.src,
+          alt: logo.alt,
+          width: logo.width,
+          height: logo.height,
+          filePath: path.relative(outputDir, filePath)
+        });
+      }
+    } catch (err) {
+      console.warn(`Failed to download logo ${logo.src}:`, err.message);
+    }
+  }
+  
+  return downloadedLogos;
 }
 
 /**
@@ -191,4 +260,4 @@ function extractLogos(assets) {
   };
 }
 
-module.exports = { analyzeAssets, downloadFavicons, extractLogos };
+module.exports = { analyzeAssets, downloadFavicons, downloadLogos, extractLogos };
