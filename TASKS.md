@@ -6,6 +6,11 @@
 
 ## Done
 
+### LLM: Configure local provider support (Update client to support custom base URL and model ID)
+- [x] Update `src/llm/client.js` to support `OPENAI_BASE_URL` and `OPENAI_MODEL`
+- [x] Update `.env.example` with new configuration options
+- [x] Update `README.md` with local provider instructions
+
 ### Documentation: Write project README (Document setup and usage instructions)
 - [x] Document project overview and objectives
 - [x] Write installation and setup instructions

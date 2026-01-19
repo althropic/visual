@@ -1,0 +1,6 @@
+# LOG.md
+
+| date | activity | status | compliance |
+| :--- | :--- | :--- | :--- |
+| 2026-01-19 | chore: scaffold project and implement core modules | completed | pass |
+| 2026-01-19 | feat: implement support for local LLM providers | completed | pass |
