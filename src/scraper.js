@@ -218,15 +218,99 @@ async function scrape(url) {
       };
     });
 
+    // Extract HTML fragments for complex/frequent elements
+    const fragments = await extractHTMLFragments(page);
+
     return {
       styles: sanitizedData,
       assets: assets,
+      fragments: fragments,
       page: page
     };
   } finally {
     // Don't close the browser here - let the caller handle it
     // await browser.close();
   }
+}
+
+/**
+ * Extracts HTML fragments from complex or frequently occurring elements.
+ * @param {Page} page - Playwright page object.
+ * @returns {Promise<Array>} - Array of HTML fragments with metadata.
+ */
+async function extractHTMLFragments(page) {
+  return await page.evaluate(() => {
+    const fragments = [];
+    const elementSignatures = new Map();
+    
+    // Find all elements with moderate to high complexity
+    const allElements = Array.from(document.querySelectorAll('*'));
+    
+    allElements.forEach(el => {
+      const childCount = el.children.length;
+      
+      // Only consider elements with 3-20 children (molecules/shells)
+      if (childCount < 3 || childCount > 20) return;
+      
+      // Skip if element is too large (likely a container)
+      const rect = el.getBoundingClientRect();
+      if (rect.width > window.innerWidth * 0.9 || rect.height > window.innerHeight * 0.9) return;
+      
+      // Create a signature based on tag and class structure
+      const signature = `${el.tagName}-${childCount}-${el.className}`;
+      
+      if (!elementSignatures.has(signature)) {
+        elementSignatures.set(signature, []);
+      }
+      
+      elementSignatures.get(signature).push(el);
+    });
+    
+    // Extract fragments for patterns that appear 2+ times
+    elementSignatures.forEach((elements, signature) => {
+      if (elements.length >= 2) {
+        const sample = elements[0];
+        const rect = sample.getBoundingClientRect();
+        
+        // Get outerHTML but limit size
+        let html = sample.outerHTML;
+        if (html.length > 5000) {
+          html = html.substring(0, 5000) + '...';
+        }
+        
+        // Get computed styles for the container
+        const style = window.getComputedStyle(sample);
+        
+        fragments.push({
+          signature,
+          frequency: elements.length,
+          tagName: sample.tagName,
+          className: sample.className,
+          childCount: sample.children.length,
+          html,
+          position: {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height
+          },
+          styles: {
+            display: style.display,
+            flexDirection: style.flexDirection,
+            gap: style.gap,
+            padding: style.padding,
+            margin: style.margin,
+            backgroundColor: style.backgroundColor,
+            borderRadius: style.borderRadius,
+            boxShadow: style.boxShadow
+          }
+        });
+      }
+    });
+    
+    // Sort by frequency (most common first)
+    return fragments.sort((a, b) => b.frequency - a.frequency).slice(0, 10);
+  });
 }
 
 module.exports = { scrape };
