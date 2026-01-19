@@ -23,6 +23,64 @@ function getClient() {
 }
 
 /**
+ * Makes a raw API call to handle streaming responses from local LLMs
+ * @param {Array} messages - Chat messages
+ * @param {string} model - Model name
+ * @returns {Promise<string>} - Response content
+ */
+async function makeRawAPICall(messages, model) {
+  const baseURL = process.env.OPENAI_BASE_URL;
+  const url = `${baseURL}/chat/completions`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY || 'not-needed'}`,
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      temperature: 0.3,
+      stream: false, // Explicitly disable streaming
+    }),
+  });
+  
+  const rawText = await response.text();
+  
+  // Check if it's a streaming response (multiple JSON objects)
+  if (rawText.includes('}\n{')) {
+    // Parse NDJSON streaming response
+    const lines = rawText.split('\n').filter(l => l.trim());
+    let fullContent = '';
+    
+    for (const line of lines) {
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.message && parsed.message.content) {
+          fullContent += parsed.message.content;
+        }
+        // Check if this is the final message
+        if (parsed.done === true) {
+          break;
+        }
+      } catch (e) {
+        // Skip invalid lines
+      }
+    }
+    
+    return fullContent;
+  } else {
+    // Single JSON response
+    const parsed = JSON.parse(rawText);
+    if (parsed.choices && parsed.choices[0] && parsed.choices[0].message) {
+      return parsed.choices[0].message.content;
+    }
+    throw new Error('Unexpected response format');
+  }
+}
+
+/**
  * Uses LLM to assign semantic roles to raw style values.
  * @param {Object} data - The collected style and analysis data.
  * @returns {Promise<Object>} - A promise that resolves to semantic design tokens.
@@ -59,17 +117,29 @@ async function mapSemanticRoles(data) {
     IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.
   `;
 
-  const client = getClient();
+  const messages = [
+    { role: "system", content: "You are a design systems expert. Always respond with valid JSON only." },
+    { role: "user", content: prompt }
+  ];
   
   try {
+    // Use raw API call for local LLMs that might stream
+    if (process.env.OPENAI_BASE_URL) {
+      const content = await makeRawAPICall(messages, process.env.OPENAI_MODEL || "gpt-4o");
+      
+      // Extract JSON from markdown code blocks if present
+      const jsonMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+      const cleanContent = jsonMatch ? jsonMatch[1].trim() : content.trim();
+      
+      return JSON.parse(cleanContent);
+    }
+    
+    // Use OpenAI SDK for official API
+    const client = getClient();
     const response = await client.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o",
-      messages: [
-        { role: "system", content: "You are a design systems expert. Always respond with valid JSON only." },
-        { role: "user", content: prompt }
-      ],
-      // Remove response_format for local providers that don't support it
-      ...(process.env.OPENAI_BASE_URL ? {} : { response_format: { type: "json_object" } })
+      messages: messages,
+      response_format: { type: "json_object" }
     });
 
     let content = response.choices[0].message.content;
