@@ -95,8 +95,10 @@ async function scrape(url) {
     const interactiveElements = data.filter(item => item.isInteractive).slice(0, 15); // Increase limit to 15 for better coverage
     for (const item of interactiveElements) {
       // Define selector outside try block so it's available in catch
-      const selector = item.id ? `#${CSS.escape(item.id)}` : 
-                      item.className ? `.${CSS.escape(item.className.split(' ')[0])}` : 
+      // Simple CSS escape for IDs and classes
+      const escapeCSS = (str) => str.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+      const selector = item.id ? `#${escapeCSS(item.id)}` : 
+                      item.className ? `.${escapeCSS(item.className.split(' ')[0])}` : 
                       item.tagName.toLowerCase();
       
       try {
