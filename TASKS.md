@@ -39,15 +39,13 @@
 - [ ] Wire up asset extraction and code generation
 - [ ] Update CLI to output full design system bundle
 
-## Active
-
-### Analysis: Build spatial "Gutter Symmetry" detector (Identify container max-width and layout gutters)
-- [x] Analyze horizontal alignment patterns across page
-- [x] Identify primary content container max-widths
-- [x] Detect consistent gutter and margin patterns
-- [x] Map layout tokens for CSS and Tailwind
-
 ## Done
+
+### Analysis: Implement Archetypal Component detection (Find frequent element trees and group into components)
+- [x] Build element tree pattern analyzer
+- [x] Use frequency analysis to group similar structures
+- [x] Identify Atoms (buttons), Molecules (cards), and Shells (nav)
+- [x] Generate component style specifications
 
 ### Extraction: Run on google.com (Test the design extraction process)
 - [x] Configure .env with valid API key
