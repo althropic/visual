@@ -7,6 +7,7 @@ const { analyzeAssets, extractLogos, downloadFavicons } = require('./analyzer/as
 const { mapSemanticRoles } = require('./llm/client');
 const { generateDesignDoc } = require('./generator/design-md');
 const { generateTailwindConfig } = require('./generator/tailwind-config');
+const { generateReactComponents } = require('./generator/react-components');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -49,6 +50,10 @@ async function extractDesign(url, outputDir = 'dist') {
     // 3. LLM Semantic Mapping & Component Generation
     console.log('Mapping semantic roles and generating components via LLM...');
     const designData = await mapSemanticRoles({ colors, spatial, archetypes, hoverStates, assets: { topLeftImage, logos, favicons: downloadedFavicons } });
+    
+    // Generate React components from archetypes
+    console.log('Generating React components from archetypes...');
+    const reactComponents = await generateReactComponents(archetypes, designData);
 
     // 4. Create output structure
     console.log(`Creating output directory: ${outputDir}`);
@@ -83,7 +88,7 @@ async function extractDesign(url, outputDir = 'dist') {
     await fs.writeFile(path.join(outputDir, 'theme.css'), themeCss);
 
     // Components
-    for (const [name, code] of Object.entries(designData.components || {})) {
+    for (const [name, code] of Object.entries(reactComponents)) {
       await fs.writeFile(path.join(outputDir, 'components', `${name}.jsx`), code);
     }
 
