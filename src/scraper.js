@@ -122,15 +122,37 @@ async function scrape(url) {
           const el = document.querySelector(sel);
           if (!el) return null;
           const s = window.getComputedStyle(el);
+          
+          // Capture comprehensive hover state styles
           return {
+            // Text styles
             color: s.color,
             backgroundColor: s.backgroundColor,
+            fontFamily: s.fontFamily,
+            fontSize: s.fontSize,
+            fontWeight: s.fontWeight,
+            textDecoration: s.textDecoration,
+            textShadow: s.textShadow,
+            
+            // Box styles
             boxShadow: s.boxShadow,
             transform: s.transform,
             borderColor: s.borderColor,
             borderWidth: s.borderWidth,
+            borderStyle: s.borderStyle,
+            borderRadius: s.borderRadius,
+            
+            // Layout styles
             opacity: s.opacity,
-            filter: s.filter
+            filter: s.filter,
+            backdropFilter: s.backdropFilter,
+            
+            // Transition styles
+            transition: s.transition,
+            
+            // Positioning
+            zIndex: s.zIndex,
+            position: s.position
           };
         }, selector);
 
