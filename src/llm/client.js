@@ -112,4 +112,4 @@ async function mapSemanticRoles(data) {
   }
 }
 
-module.exports = { mapSemanticRoles };
+module.exports = { mapSemanticRoles, getClient };
