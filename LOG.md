@@ -9,3 +9,5 @@
 | 2026-01-19 | fix: cleanup workspace and retry design extraction | completed | pass |
 | 2026-01-19 | chore: update project context and roadmap for "True Capture" architecture | completed | pass |
 | 2026-01-19 | feat: implement full "True Capture" design extraction pipeline | completed | pass |
+| 2026-01-19 | chore: resolve git status issues and commit pending changes | completed | pass |
+| 2026-01-19 | chore: move hover capture task to active and decompose into sub-steps | completed | pass |
