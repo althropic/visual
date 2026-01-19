@@ -1,0 +1,6 @@
+{
+    "remote.SSH.showLoginTerminal": true,
+    "workbench.startupEditor": "none",
+    "terminal.integrated.showExitAlert": false,
+    "workbench.activityBar.location": "bottom"
+}
