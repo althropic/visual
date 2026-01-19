@@ -6,11 +6,54 @@ const stats = require('simple-statistics');
  * @returns {Object} - An object containing the detected spatial system.
  */
 function analyzeSpatial(styleData) {
-  // Spatial analysis logic will be implemented in the next sub-steps
+  const spacings = [];
+
+  // Extract spacing values (margin, padding, gaps)
+  styleData.forEach(item => {
+    const values = [
+      item.styles.marginTop, item.styles.marginRight, item.styles.marginBottom, item.styles.marginLeft,
+      item.styles.paddingTop, item.styles.paddingRight, item.styles.paddingBottom, item.styles.paddingLeft,
+      item.styles.gap
+    ];
+
+    values.forEach(val => {
+      if (!val || val === 'normal' || val === '0px' || val === '0') return;
+      const match = val.match(/^(-?\d+(\.\d+)?)px$/);
+      if (match) {
+        spacings.push(parseFloat(match[1]));
+      }
+    });
+  });
+
+  if (spacings.length === 0) {
+    return { baseUnit: 8, commonSpacings: [], gridConsistency: 0 };
+  }
+
+  // Find common spacings
+  const counts = {};
+  spacings.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+  const sortedSpacings = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => parseFloat(entry[0]));
+
+  // Heuristic for base unit: find GCD of common spacings or look for multiples of 4/8
+  const baseUnits = [8, 4, 10, 5];
+  let bestBase = 8;
+  let maxScore = 0;
+
+  baseUnits.forEach(unit => {
+    const consistentCount = spacings.filter(s => s % unit === 0).length;
+    const score = consistentCount / spacings.length;
+    if (score > maxScore) {
+      maxScore = score;
+      bestBase = unit;
+    }
+  });
+
   return {
-    baseUnit: null,
-    commonSpacings: [],
-    gridConsistency: 0
+    baseUnit: bestBase,
+    commonSpacings: sortedSpacings.slice(0, 5),
+    gridConsistency: maxScore
   };
 }
 
