@@ -8,6 +8,7 @@ const { mapSemanticRoles } = require('./llm/client');
 const { generateDesignDoc } = require('./generator/design-md');
 const { generateTailwindConfig } = require('./generator/tailwind-config');
 const { generateReactComponents } = require('./generator/react-components');
+const { generateFragmentComponents } = require('./generator/fragment-components');
 const { generateComponentIndex, generateComponentReadme } = require('./generator/component-index');
 const fs = require('fs').promises;
 const path = require('path');
@@ -26,6 +27,7 @@ async function extractDesign(url, outputDir = 'dist') {
     const scrapedData = await scrape(url);
     const styles = scrapedData.styles;
     const assets = scrapedData.assets;
+    const fragments = scrapedData.fragments || [];
 
     // 2. Run heuristic analysis
     console.log('Analyzing colors and spatial patterns...');
@@ -55,6 +57,10 @@ async function extractDesign(url, outputDir = 'dist') {
     // Generate React components from archetypes
     console.log('Generating React components from archetypes...');
     const reactComponents = await generateReactComponents(archetypes, designData);
+    
+    // Generate components from HTML fragments
+    console.log('Generating components from HTML fragments...');
+    const fragmentComponents = await generateFragmentComponents(fragments, designData);
 
     // 4. Create output structure
     console.log(`Creating output directory: ${outputDir}`);
@@ -66,6 +72,7 @@ async function extractDesign(url, outputDir = 'dist') {
       designData,
       colors,
       reactComponents,
+      fragmentComponents,
       archetypes,
       assets: { topLeftImage, logos, favicons: downloadedFavicons }
     });
@@ -104,7 +111,10 @@ async function createDistStructure(outputDir) {
  * @param {Object} packageData - All data needed for the design package.
  */
 async function saveDesignPackage(outputDir, packageData) {
-  const { designData, colors, reactComponents, archetypes, assets } = packageData;
+  const { designData, colors, reactComponents, fragmentComponents, archetypes, assets } = packageData;
+  
+  // Merge archetype and fragment components
+  const allComponents = { ...reactComponents, ...fragmentComponents };
   
   // 1. Save documentation
   const designDoc = generateDesignDoc(designData);
@@ -119,15 +129,15 @@ async function saveDesignPackage(outputDir, packageData) {
   await fs.writeFile(path.join(outputDir, 'styles', 'theme.css'), themeCss);
   
   // 4. Save React components
-  for (const [name, code] of Object.entries(reactComponents)) {
+  for (const [name, code] of Object.entries(allComponents)) {
     await fs.writeFile(path.join(outputDir, 'components', `${name}.jsx`), code);
   }
   
   // 5. Save component library index and README
-  const componentIndex = generateComponentIndex(reactComponents);
+  const componentIndex = generateComponentIndex(allComponents);
   await fs.writeFile(path.join(outputDir, 'components', 'index.js'), componentIndex);
   
-  const componentReadme = generateComponentReadme(reactComponents, archetypes);
+  const componentReadme = generateComponentReadme(allComponents, archetypes);
   await fs.writeFile(path.join(outputDir, 'components', 'README.md'), componentReadme);
   
   // 6. Save package.json for the design system
@@ -135,7 +145,7 @@ async function saveDesignPackage(outputDir, packageData) {
   await fs.writeFile(path.join(outputDir, 'package.json'), packageJson);
   
   // 7. Save main README
-  const mainReadme = generateMainReadme(designData, reactComponents, assets);
+  const mainReadme = generateMainReadme(designData, allComponents, assets);
   await fs.writeFile(path.join(outputDir, 'README.md'), mainReadme);
   
   console.log('Saved all design package files successfully!');
