@@ -8,6 +8,7 @@ const { mapSemanticRoles } = require('./llm/client');
 const { generateDesignDoc } = require('./generator/design-md');
 const { generateTailwindConfig } = require('./generator/tailwind-config');
 const { generateReactComponents } = require('./generator/react-components');
+const { generateComponentIndex, generateComponentReadme } = require('./generator/component-index');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -91,6 +92,14 @@ async function extractDesign(url, outputDir = 'dist') {
     for (const [name, code] of Object.entries(reactComponents)) {
       await fs.writeFile(path.join(outputDir, 'components', `${name}.jsx`), code);
     }
+    
+    // Component library index
+    const componentIndex = generateComponentIndex(reactComponents);
+    await fs.writeFile(path.join(outputDir, 'components', 'index.js'), componentIndex);
+    
+    // Component library README
+    const componentReadme = generateComponentReadme(reactComponents, archetypes);
+    await fs.writeFile(path.join(outputDir, 'components', 'README.md'), componentReadme);
 
     console.log(`Successfully captured design package at: ${outputDir}`);
 
