@@ -162,28 +162,39 @@ async function generateShellComponent(shell, designTokens) {
  * @returns {string} - LLM prompt.
  */
 function buildAtomPrompt(atom, designTokens) {
-  return `Generate a React functional component for a ${atom.role} atom.
+  // Extract actual style values from the atom
+  const styles = atom.styles || {};
+  const colorStyles = styles.colors || {};
+  const typographyStyles = styles.typography || {};
+  const spacingStyles = styles.spacing || {};
+  const borderStyles = styles.borders || {};
+  
+  return `Generate a React functional component for a ${atom.role} based on ACTUAL extracted styles.
 
-Component Specifications:
-- Role: ${atom.role}
+EXTRACTED STYLE DATA:
 - Tag: ${atom.tagName}
-- Frequency: Appears ${atom.count} times on the page
-- Style Categories: ${Object.keys(atom.styles || {}).join(', ')}
+- Frequency: ${atom.count} instances
+- Colors: ${JSON.stringify(colorStyles)}
+- Typography: ${JSON.stringify(typographyStyles)}
+- Spacing: ${JSON.stringify(spacingStyles)}
+- Borders: ${JSON.stringify(borderStyles)}
+${atom.hover ? `- Hover State: ${JSON.stringify(atom.hover.colors || {})}` : ''}
 
-Design Tokens Available:
-- Primary Color: ${designTokens.colorTokens?.primaryAction || '#3b82f6'}
-- Secondary Color: ${designTokens.colorTokens?.secondaryAction || '#8b5cf6'}
+DESIGN TOKENS:
+- Primary: ${designTokens.colorTokens?.primaryAction || '#3b82f6'}
+- Secondary: ${designTokens.colorTokens?.secondaryAction || '#8b5cf6'}
 - Base Unit: ${designTokens.spatialTokens?.baseUnit || 8}px
 
-Requirements:
-1. Use Tailwind CSS classes for styling
-2. Make the component reusable with props
-3. Include hover states if this is an interactive element
-4. Use semantic HTML
-5. Add TypeScript-style prop comments
-6. Keep it simple and focused on the atom's core purpose
+REQUIREMENTS:
+1. Use Tailwind classes that MATCH the extracted styles
+2. If color is ${colorStyles.color}, use text-[${colorStyles.color}]
+3. If fontSize is ${typographyStyles.fontSize}, use text-[${typographyStyles.fontSize}]
+4. If padding is ${spacingStyles.padding}, use p-[${spacingStyles.padding}]
+5. Include hover states if hover data exists
+6. Make it reusable with props
+7. Use semantic HTML
 
-Return ONLY the component code, no explanations.`;
+Return ONLY the component code, no markdown, no explanations.`;
 }
 
 /**
@@ -259,7 +270,60 @@ Return ONLY the component code, no explanations.`;
 function generateFallbackAtomComponent(atom) {
   const componentName = generateComponentName(atom.role, 'atom');
   
+  // Extract actual styles to build better fallback
+  const styles = atom.styles || {};
+  const colorStyles = styles.colors || {};
+  const spacingStyles = styles.spacing || {};
+  const borderStyles = styles.borders || {};
+  
+  // Build Tailwind classes from actual extracted styles
+  const classes = [];
+  
+  // Add display and layout
+  classes.push('inline-flex items-center justify-center');
+  
+  // Add spacing from extracted data
+  if (spacingStyles.padding) {
+    classes.push(`p-[${spacingStyles.padding}]`);
+  } else {
+    classes.push('px-4 py-2');
+  }
+  
+  // Add colors from extracted data
+  if (colorStyles.color) {
+    classes.push(`text-[${colorStyles.color}]`);
+  }
+  if (colorStyles.backgroundColor) {
+    classes.push(`bg-[${colorStyles.backgroundColor}]`);
+  }
+  
+  // Add borders from extracted data
+  if (borderStyles.borderRadius) {
+    classes.push(`rounded-[${borderStyles.borderRadius}]`);
+  } else {
+    classes.push('rounded');
+  }
+  
+  const baseClasses = classes.join(' ');
+  
   return `import React from 'react';
+
+/**
+ * ${atom.role} component
+ * Extracted from ${atom.count} instances
+ * @param {Object} props - Component props
+ */
+export default function ${componentName}({ children, className = '', ...props }) {
+  return (
+    <${atom.tagName.toLowerCase()} 
+      className={\`${baseClasses} \${className}\`}
+      {...props}
+    >
+      {children}
+    </${atom.tagName.toLowerCase()}>
+  );
+}`;
+}
 
 /**
  * ${atom.role} component
