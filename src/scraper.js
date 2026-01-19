@@ -50,17 +50,26 @@ async function scrape(url) {
           transition: style.transition
         };
 
-        let hoverStyles = null;
-        const interactiveTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA'];
+        // Enhanced interactive element detection
+        const interactiveTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'OPTION', 'LABEL'];
         const isInteractive = interactiveTags.includes(el.tagName) || 
                              style.cursor === 'pointer' || 
-                             el.onclick != null;
+                             el.onclick != null ||
+                             el.onmouseover != null ||
+                             el.hasAttribute('tabindex') ||
+                             el.hasAttribute('role') && 
+                               (el.getAttribute('role') === 'button' || 
+                                el.getAttribute('role') === 'link' || 
+                                el.getAttribute('role') === 'checkbox' || 
+                                el.getAttribute('role') === 'radio');
 
         if (isInteractive) {
-          // Trigger hover state simulation in DOM if possible
-          // Note: In evaluate context, we can only see styles. Actual hovering is done via Playwright page.hover()
-          // But we can check for CSS hover rules if we had a way. 
-          // For now, we rely on the main process to handle the actual hover interaction for specific archetypes.
+          // Collect additional attributes that indicate interactivity
+          const interactiveAttributes = {};
+          if (el.hasAttribute('href')) interactiveAttributes.href = el.getAttribute('href');
+          if (el.hasAttribute('type')) interactiveAttributes.type = el.getAttribute('type');
+          if (el.hasAttribute('role')) interactiveAttributes.role = el.getAttribute('role');
+          if (el.hasAttribute('aria-label')) interactiveAttributes.ariaLabel = el.getAttribute('aria-label');
         }
 
         results.push({
