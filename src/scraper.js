@@ -61,7 +61,21 @@ async function scrape(url) {
       }).filter(Boolean);
     });
 
-    return data;
+    // Filter out elements with redundant or default styles to reduce data volume
+    const sanitizedData = data.filter(item => {
+      // Basic heuristic: if it has no background, no color change, and no border, it might be a layout wrapper
+      // But we keep it if it has children with styles. For now, we keep everything that passed the visibility check.
+      return item !== null;
+    }).map(item => {
+      // Sanitize style values (e.g., convert "rgba(0, 0, 0, 0)" to "transparent" if needed)
+      const sanitizedStyles = { ...item.styles };
+      for (const [key, value] of Object.entries(sanitizedStyles)) {
+        if (value === 'rgba(0, 0, 0, 0)') sanitizedStyles[key] = 'transparent';
+      }
+      return { ...item, styles: sanitizedStyles };
+    });
+
+    return sanitizedData;
   } finally {
     await browser.close();
   }
