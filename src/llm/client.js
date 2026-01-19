@@ -8,9 +8,16 @@ function getClient() {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('Missing OPENAI_API_KEY environment variable');
     }
-    openai = new OpenAI({
+    const options = {
       apiKey: process.env.OPENAI_API_KEY,
-    });
+    };
+
+    // Support for local providers or custom base URLs
+    if (process.env.OPENAI_BASE_URL) {
+      options.baseURL = process.env.OPENAI_BASE_URL;
+    }
+
+    openai = new OpenAI(options);
   }
   return openai;
 }
@@ -37,7 +44,7 @@ async function mapSemanticRoles(data) {
 
   const client = getClient();
   const response = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: process.env.OPENAI_MODEL || "gpt-4o",
     messages: [
       { role: "system", content: "You are a design systems expert." },
       { role: "user", content: prompt }

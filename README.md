@@ -3,13 +3,13 @@
 Automated design system extractor that generates a `DESIGN.md` manifesto from any URL.
 
 ## Overview
-This tool navigates to a target URL, extracts computed styles from visible DOM nodes, and uses heuristic analysis combined with LLM reasoning (GPT-4o) to identify and document the underlying design system (colors, spacing, typography).
+This tool navigates to a target URL, extracts computed styles from visible DOM nodes, and uses heuristic analysis combined with LLM reasoning (GPT-4o or compatible) to identify and document the underlying design system (colors, spacing, typography).
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js (LTS)
-- OpenAI API Key
+- OpenAI API Key (or local provider)
 
 ### Installation
 1. Clone the repository
@@ -20,6 +20,15 @@ This tool navigates to a target URL, extracts computed styles from visible DOM n
 3. Set up environment variables:
    - Create a `.env` file based on `.env.example`
    - Add your `OPENAI_API_KEY`
+   - (Optional) Add `OPENAI_BASE_URL` and `OPENAI_MODEL` for local or custom providers (e.g., Ollama, LocalAI).
+
+#### Using a Local Provider
+To use a local OpenAI-compatible provider (like Ollama), configure your `.env` file as follows:
+```env
+OPENAI_API_KEY=not-needed-for-local
+OPENAI_BASE_URL=http://localhost:5050/ollama/api
+OPENAI_MODEL=kimi-k2-thinking
+```
 
 ## Usage
 
