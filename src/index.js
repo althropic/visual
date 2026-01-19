@@ -58,8 +58,7 @@ async function extractDesign(url, outputDir = 'dist') {
 
     // 4. Create output structure
     console.log(`Creating output directory: ${outputDir}`);
-    await fs.mkdir(outputDir, { recursive: true });
-    await fs.mkdir(path.join(outputDir, 'components'), { recursive: true });
+    await createDistStructure(outputDir);
 
     // 5. Generate and save implementation files
     console.log('Saving implementation files...');
@@ -108,6 +107,25 @@ async function extractDesign(url, outputDir = 'dist') {
     console.error('Design extraction failed:', error);
     throw error;
   }
+}
+
+/**
+ * Creates the complete dist/ folder structure for the design package.
+ * @param {string} outputDir - The output directory path.
+ */
+async function createDistStructure(outputDir) {
+  // Create main directories
+  await fs.mkdir(outputDir, { recursive: true });
+  await fs.mkdir(path.join(outputDir, 'components'), { recursive: true });
+  await fs.mkdir(path.join(outputDir, 'assets'), { recursive: true });
+  await fs.mkdir(path.join(outputDir, 'assets', 'logos'), { recursive: true });
+  await fs.mkdir(path.join(outputDir, 'assets', 'favicons'), { recursive: true });
+  await fs.mkdir(path.join(outputDir, 'styles'), { recursive: true });
+  
+  console.log('Created dist/ folder structure:');
+  console.log('  - components/     (React components)');
+  console.log('  - assets/         (Logos, favicons, images)');
+  console.log('  - styles/         (CSS and theme files)');
 }
 
 module.exports = { extractDesign };
