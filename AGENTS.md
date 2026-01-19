@@ -121,6 +121,9 @@ Rules and templates for AI agents. Read this at session start.
    dist/
    build/
    *.log
+
+   # Rule files
+   .clinerules
    ```
 
 3. **Language-Specific Additions:**
@@ -198,6 +201,9 @@ Thumbs.db
 dist/
 build/
 *.log
+
+# Rule files
+.clinerules
 ```
 
 ### README.md Template

@@ -34,3 +34,6 @@ Thumbs.db
 dist/
 build/
 *.log
+
+# Rule files
+.clinerules
