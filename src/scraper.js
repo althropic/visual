@@ -9,7 +9,8 @@ async function scrape(url) {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle' });
+    // Navigate to URL and wait for network to be idle to ensure dynamic content is loaded
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
 
     // Extraction logic will be implemented in the next sub-steps
     const data = [];
