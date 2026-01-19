@@ -50,10 +50,33 @@ function analyzeSpatial(styleData) {
     }
   });
 
+  // Detect Gutter Symmetry and Container Max-Width
+  const widths = styleData.map(item => item.rect.width).filter(w => w > 300); // Filter out small elements
+  const xPositions = styleData.map(item => item.rect.x);
+  
+  // Find most frequent widths (potential container sizes)
+  const widthCounts = {};
+  widths.forEach(w => { widthCounts[w] = (widthCounts[w] || 0) + 1; });
+  const commonWidths = Object.entries(widthCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => parseFloat(entry[0]));
+
+  // Find most frequent X positions (potential gutters)
+  const xCounts = {};
+  xPositions.forEach(x => { xCounts[x] = (xCounts[x] || 0) + 1; });
+  const commonX = Object.entries(xCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => parseFloat(entry[0]));
+
   return {
     baseUnit: bestBase,
     commonSpacings: sortedSpacings.slice(0, 5),
-    gridConsistency: maxScore
+    gridConsistency: maxScore,
+    layout: {
+      maxWidth: commonWidths[0] || null,
+      gutters: commonX.slice(0, 3),
+      symmetry: commonX.length < styleData.length * 0.1 ? 'high' : 'low'
+    }
   };
 }
 

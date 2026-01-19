@@ -3,15 +3,15 @@ const { extractDesign } = require('../src/index');
 
 async function main() {
   const url = process.argv[2];
-  const outputPath = process.argv[3] || 'DESIGN.md';
+  const outputDir = process.argv[3] || 'dist';
 
   if (!url) {
-    console.error('Usage: design-extractor-auto <url> [output-path]');
+    console.error('Usage: design-extractor-auto <url> [output-dir]');
     process.exit(1);
   }
 
   try {
-    await extractDesign(url, outputPath);
+    await extractDesign(url, outputDir);
   } catch (error) {
     console.error('Error:', error.message);
     process.exit(1);

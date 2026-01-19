@@ -10,7 +10,7 @@ Rules and templates for AI agents. Read this at session start.
 
 - **file length:** max 200 lines; propose refactor if exceeded
 - **solid:** single responsibility, dependency inversion
-- **environment:** powershell (windows), use powershell commands.
+- **environment:** powershell (windows), always use powershell commands.
 
 ### Task Management (Atomic Scoping) - STRICT ENFORCEMENT
 
@@ -59,7 +59,6 @@ Rules and templates for AI agents. Read this at session start.
 1. **When to Commit:**
    - After completing each sub-step
    - After creating/modifying any source file
-   - After updating TASKS.md
    - After running tests successfully
 
 2. **Commit Format:**
@@ -74,6 +73,7 @@ Rules and templates for AI agents. Read this at session start.
    - Commit with message: `git commit -m "<type>: <description>"`
    - Do NOT ask user permission to commit
    - Commit automatically as part of your workflow
+   - Never commit TASKS.md, keep it local.
 
 4. **Atomic Commits:**
    - One logical change per commit
@@ -92,7 +92,7 @@ Rules and templates for AI agents. Read this at session start.
 2. **Required Patterns:**
    ```
    # Documentation (keep local)
-   *.md
+   TASKS.md
    !README.md
    
    # Dependencies

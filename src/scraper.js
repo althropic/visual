@@ -12,19 +12,58 @@ async function scrape(url) {
     // Navigate to URL and wait for network to be idle to ensure dynamic content is loaded
     await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
 
-    // Extract computed styles from all elements
-    const data = await page.evaluate(() => {
+    // Extract computed styles from all elements including state changes
+    const data = await page.evaluate(async () => {
       const elements = Array.from(document.querySelectorAll('*'));
-      return elements.map(el => {
+      const results = [];
+
+      for (const el of elements) {
         const style = window.getComputedStyle(el);
         const rect = el.getBoundingClientRect();
 
         // Only include visible elements with dimensions
         if (rect.width === 0 || rect.height === 0 || style.visibility === 'hidden' || style.display === 'none') {
-          return null;
+          continue;
         }
 
-        return {
+        const baseStyles = {
+          color: style.color,
+          backgroundColor: style.backgroundColor,
+          fontFamily: style.fontFamily,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          lineHeight: style.lineHeight,
+          marginTop: style.marginTop,
+          marginRight: style.marginRight,
+          marginBottom: style.marginBottom,
+          marginLeft: style.marginLeft,
+          paddingTop: style.paddingTop,
+          paddingRight: style.paddingRight,
+          paddingBottom: style.paddingBottom,
+          paddingLeft: style.paddingLeft,
+          display: style.display,
+          position: style.position,
+          gap: style.gap,
+          borderRadius: style.borderRadius,
+          boxShadow: style.boxShadow,
+          border: style.border,
+          transition: style.transition
+        };
+
+        let hoverStyles = null;
+        const interactiveTags = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA'];
+        const isInteractive = interactiveTags.includes(el.tagName) || 
+                             style.cursor === 'pointer' || 
+                             el.onclick != null;
+
+        if (isInteractive) {
+          // Trigger hover state simulation in DOM if possible
+          // Note: In evaluate context, we can only see styles. Actual hovering is done via Playwright page.hover()
+          // But we can check for CSS hover rules if we had a way. 
+          // For now, we rely on the main process to handle the actual hover interaction for specific archetypes.
+        }
+
+        results.push({
           tagName: el.tagName,
           className: el.className,
           id: el.id,
@@ -34,32 +73,43 @@ async function scrape(url) {
             width: rect.width,
             height: rect.height
           },
-          styles: {
-            color: style.color,
-            backgroundColor: style.backgroundColor,
-            fontFamily: style.fontFamily,
-            fontSize: style.fontSize,
-            fontWeight: style.fontWeight,
-            lineHeight: style.lineHeight,
-            marginTop: style.marginTop,
-            marginRight: style.marginRight,
-            marginBottom: style.marginBottom,
-            marginLeft: style.marginLeft,
-            paddingTop: style.paddingTop,
-            paddingRight: style.paddingRight,
-            paddingBottom: style.paddingBottom,
-            paddingLeft: style.paddingLeft,
-            display: style.display,
-            position: style.position,
-            gap: style.gap,
-            borderRadius: style.borderRadius,
-            boxShadow: style.boxShadow,
-            border: style.border,
-            transition: style.transition
-          }
-        };
-      }).filter(Boolean);
+          styles: baseStyles,
+          isInteractive
+        });
+      }
+      return results;
     });
+
+    // Handle actual hover capture for detected interactive elements
+    const interactiveElements = data.filter(item => item.isInteractive).slice(0, 10); // Limit to top 10 for performance
+    for (const item of interactiveElements) {
+      try {
+        const selector = item.id ? `#${CSS.escape(item.id)}` : 
+                        item.className ? `.${CSS.escape(item.className.split(' ')[0])}` : 
+                        item.tagName.toLowerCase();
+        
+        await page.hover(selector);
+        await page.waitForTimeout(200); // Wait for potential transitions
+
+        const hStyles = await page.evaluate((sel) => {
+          const el = document.querySelector(sel);
+          if (!el) return null;
+          const s = window.getComputedStyle(el);
+          return {
+            color: s.color,
+            backgroundColor: s.backgroundColor,
+            boxShadow: s.boxShadow,
+            transform: s.transform
+          };
+        }, selector);
+
+        if (hStyles) {
+          item.hoverStyles = hStyles;
+        }
+      } catch (e) {
+        // Skip elements that can't be hovered or found
+      }
+    }
 
     // Filter out elements with redundant or default styles to reduce data volume
     const sanitizedData = data.filter(item => {

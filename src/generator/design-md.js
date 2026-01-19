@@ -29,6 +29,7 @@ Our spatial system is rooted in a base unit that ensures geometric rhythm and sy
 - **Base Unit:** ${spatialTokens.baseUnit}px
 - **Container Padding:** ${spatialTokens.containerPadding}px
 - **Stack Gap:** ${spatialTokens.stackGap}px
+- **Max Width:** ${spatialTokens.maxWidth || 'N/A'}px
 
 ## 3. Typography Hierarchy
 Typography is mapped to a geometric scale to ensure a clear visual hierarchy.
