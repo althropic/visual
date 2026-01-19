@@ -63,7 +63,7 @@ async function extractDesign(url, outputDir = 'dist') {
     await fs.writeFile(path.join(outputDir, 'DESIGN.md'), designDoc);
 
     // tailwind.config.js
-    const twConfig = generateTailwindConfig(designData);
+    const twConfig = generateTailwindConfig(designData, colors);
     await fs.writeFile(path.join(outputDir, 'tailwind.config.js'), twConfig);
 
     // theme.css

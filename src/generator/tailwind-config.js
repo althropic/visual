@@ -1,9 +1,10 @@
 /**
  * Generates a tailwind.config.js content based on design tokens.
  * @param {Object} tokens - The semantic design tokens.
+ * @param {Object} colorAnalysis - Optional raw color analysis data with scales.
  * @returns {string} - The generated configuration file content.
  */
-function generateTailwindConfig(tokens) {
+function generateTailwindConfig(tokens, colorAnalysis = null) {
   const { colorTokens, spatialTokens, typographyTokens, interactionTokens } = tokens;
 
   // Build comprehensive Tailwind configuration template
@@ -11,7 +12,7 @@ function generateTailwindConfig(tokens) {
     content: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
     theme: {
       extend: {
-        colors: buildColorTheme(colorTokens),
+        colors: buildColorTheme(colorTokens, colorAnalysis),
         spacing: buildSpacingTheme(spatialTokens),
         maxWidth: buildMaxWidthTheme(spatialTokens),
         fontSize: buildFontSizeTheme(typographyTokens),
@@ -30,9 +31,10 @@ module.exports = ${JSON.stringify(config, null, 2)};`;
 /**
  * Builds color theme extension from color tokens.
  * @param {Object} colorTokens - Color tokens from analysis.
+ * @param {Object} colorAnalysis - Optional raw color analysis with scales.
  * @returns {Object} - Tailwind color configuration.
  */
-function buildColorTheme(colorTokens) {
+function buildColorTheme(colorTokens, colorAnalysis = null) {
   if (!colorTokens) return {};
   
   const colors = {
@@ -52,6 +54,28 @@ function buildColorTheme(colorTokens) {
   if (colorTokens.warning) colors.warning = colorTokens.warning;
   if (colorTokens.error) colors.error = colorTokens.error;
   if (colorTokens.info) colors.info = colorTokens.info;
+  
+  // Inject color scales from raw analysis if available
+  if (colorAnalysis) {
+    if (colorAnalysis.primaryScale) {
+      colors.primary = colorAnalysis.primaryScale;
+    }
+    if (colorAnalysis.secondaryScale) {
+      colors.secondary = colorAnalysis.secondaryScale;
+    }
+    if (colorAnalysis.accentScale) {
+      colors.accent = colorAnalysis.accentScale;
+    }
+    
+    // Add semantic color scales if available
+    if (colorAnalysis.semantic) {
+      Object.entries(colorAnalysis.semantic).forEach(([key, value]) => {
+        if (!colors[key]) {
+          colors[key] = value;
+        }
+      });
+    }
+  }
   
   return colors;
 }
