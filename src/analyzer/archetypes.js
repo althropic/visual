@@ -268,6 +268,9 @@ function categorizePatternGroup(basePattern, group, styleData) {
  * @returns {boolean} - True if the element is an atom
  */
 function isAtomElement(tagName, className, element, childCount) {
+  // Ensure className is a string
+  const classNameStr = typeof className === 'string' ? className : '';
+  
   // Direct atom tags
   const atomTags = ['BUTTON', 'INPUT', 'A', 'IMG', 'TEXTAREA', 'SELECT', 'LABEL', 'SPAN'];
   if (atomTags.includes(tagName)) return true;
@@ -277,7 +280,7 @@ function isAtomElement(tagName, className, element, childCount) {
   
   // Elements with specific atom-like classes
   const atomClasses = ['btn', 'button', 'input', 'link', 'icon', 'checkbox', 'radio', 'switch'];
-  if (atomClasses.some(cls => className.toLowerCase().includes(cls))) return true;
+  if (atomClasses.some(cls => classNameStr.toLowerCase().includes(cls))) return true;
   
   return false;
 }
@@ -290,12 +293,15 @@ function isAtomElement(tagName, className, element, childCount) {
  * @returns {boolean} - True if the element is a molecule
  */
 function isMoleculeElement(tagName, className, childCount) {
+  // Ensure className is a string
+  const classNameStr = typeof className === 'string' ? className : '';
+  
   // Molecules have moderate child counts
   if (childCount >= 3 && childCount <= 10) return true;
   
   // Elements with specific molecule-like classes
   const moleculeClasses = ['card', 'form-group', 'list-item', 'media', 'alert', 'panel', 'well', 'box'];
-  if (moleculeClasses.some(cls => className.toLowerCase().includes(cls))) return true;
+  if (moleculeClasses.some(cls => classNameStr.toLowerCase().includes(cls))) return true;
   
   // Specific tag combinations that indicate molecules
   const moleculeTags = ['FORM', 'FIELDSET', 'DL', 'UL', 'OL', 'TABLE'];
@@ -312,6 +318,9 @@ function isMoleculeElement(tagName, className, childCount) {
  * @returns {boolean} - True if the element is a shell
  */
 function isShellElement(tagName, className, childCount) {
+  // Ensure className is a string
+  const classNameStr = typeof className === 'string' ? className : '';
+  
   // Direct shell tags
   const shellTags = ['NAV', 'HEADER', 'FOOTER', 'MAIN', 'ASIDE', 'SECTION', 'ARTICLE'];
   if (shellTags.includes(tagName)) return true;
@@ -321,7 +330,7 @@ function isShellElement(tagName, className, childCount) {
   
   // Elements with specific shell-like classes
   const shellClasses = ['navbar', 'navigation', 'header', 'footer', 'sidebar', 'container', 'wrapper'];
-  if (shellClasses.some(cls => className.toLowerCase().includes(cls))) return true;
+  if (shellClasses.some(cls => classNameStr.toLowerCase().includes(cls))) return true;
   
   return false;
 }
@@ -657,6 +666,9 @@ function generateVariantName(classNames, componentType) {
  * @returns {string} - The role description
  */
 function getAtomRole(tagName, className = '') {
+  // Ensure className is a string
+  const classNameStr = typeof className === 'string' ? className : '';
+  
   // Check for specific class-based roles first
   const classRoles = {
     'btn': 'Button',
@@ -671,7 +683,7 @@ function getAtomRole(tagName, className = '') {
   
   // Check if any class role matches
   for (const [cls, role] of Object.entries(classRoles)) {
-    if (className.toLowerCase().includes(cls)) {
+    if (classNameStr.toLowerCase().includes(cls)) {
       return role;
     }
   }
@@ -699,6 +711,9 @@ function getAtomRole(tagName, className = '') {
  * @returns {string} - The role description
  */
 function getMoleculeRole(tagName, className = '', childCount = 0) {
+  // Ensure className is a string
+  const classNameStr = typeof className === 'string' ? className : '';
+  
   // Check for specific class-based roles first
   const classRoles = {
     'card': 'Card',
@@ -713,7 +728,7 @@ function getMoleculeRole(tagName, className = '', childCount = 0) {
   
   // Check if any class role matches
   for (const [cls, role] of Object.entries(classRoles)) {
-    if (className.toLowerCase().includes(cls)) {
+    if (classNameStr.toLowerCase().includes(cls)) {
       return role;
     }
   }
@@ -740,6 +755,9 @@ function getMoleculeRole(tagName, className = '', childCount = 0) {
  * @returns {string} - The role description
  */
 function getShellRole(tagName, className = '') {
+  // Ensure className is a string
+  const classNameStr = typeof className === 'string' ? className : '';
+  
   // Check for specific class-based roles first
   const classRoles = {
     'navbar': 'Navigation Bar',
@@ -753,7 +771,7 @@ function getShellRole(tagName, className = '') {
   
   // Check if any class role matches
   for (const [cls, role] of Object.entries(classRoles)) {
-    if (className.toLowerCase().includes(cls)) {
+    if (classNameStr.toLowerCase().includes(cls)) {
       return role;
     }
   }
