@@ -11,3 +11,7 @@
 | 2026-01-19 | feat: implement full "True Capture" design extraction pipeline | completed | pass |
 | 2026-01-19 | chore: resolve git status issues and commit pending changes | completed | pass |
 | 2026-01-19 | chore: move hover capture task to active and decompose into sub-steps | completed | pass |
+| 2026-01-19 | chore: remove TASKS.md from git tracking per AGENTS.md rules | completed | pass |
+| 2026-01-19 | chore: update .gitignore to properly ignore TASKS.md per AGENTS.md rules | completed | pass |
+| 2026-01-19 | chore: update LOG.md with git resolution activities | completed | pass |
+| 2026-01-19 | chore: add DESIGN.md to track design system output | completed | pass |
