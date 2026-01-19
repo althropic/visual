@@ -3,9 +3,9 @@
 ## Backlog
 
 ### Scraper: Implement "Hover" state capture (Capture dynamic computed styles on hover events)
-- [ ] Identify interactive elements (buttons, links)
-- [ ] Trigger hover event and wait for transitions
-- [ ] Extract state-specific style data
+- [x] Identify interactive elements (buttons, links)
+- [x] Trigger hover event and wait for transitions
+- [x] Extract state-specific style data
 - [ ] Map state changes to CSS tokens
 
 ### Analysis: Implement Archetypal Component detection (Find frequent element trees and group into components)
