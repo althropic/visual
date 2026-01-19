@@ -90,15 +90,33 @@ async function scrape(url) {
     });
 
     // Handle actual hover capture for detected interactive elements
-    const interactiveElements = data.filter(item => item.isInteractive).slice(0, 10); // Limit to top 10 for performance
+    const interactiveElements = data.filter(item => item.isInteractive).slice(0, 15); // Increase limit to 15 for better coverage
     for (const item of interactiveElements) {
       try {
         const selector = item.id ? `#${CSS.escape(item.id)}` : 
                         item.className ? `.${CSS.escape(item.className.split(' ')[0])}` : 
                         item.tagName.toLowerCase();
         
-        await page.hover(selector);
-        await page.waitForTimeout(200); // Wait for potential transitions
+        // Try multiple strategies to hover over the element
+        try {
+          await page.hover(selector);
+        } catch (hoverError) {
+          // If direct hover fails, try with force option
+          try {
+            await page.hover(selector, { force: true });
+          } catch (forceHoverError) {
+            // If force hover also fails, try with position option
+            try {
+              await page.hover(selector, { position: { x: 5, y: 5 } });
+            } catch (positionHoverError) {
+              // Skip this element if all hover attempts fail
+              continue;
+            }
+          }
+        }
+        
+        // Wait longer for transitions to complete (increased from 200ms to 500ms)
+        await page.waitForTimeout(500);
 
         const hStyles = await page.evaluate((sel) => {
           const el = document.querySelector(sel);
@@ -108,7 +126,11 @@ async function scrape(url) {
             color: s.color,
             backgroundColor: s.backgroundColor,
             boxShadow: s.boxShadow,
-            transform: s.transform
+            transform: s.transform,
+            borderColor: s.borderColor,
+            borderWidth: s.borderWidth,
+            opacity: s.opacity,
+            filter: s.filter
           };
         }, selector);
 
@@ -116,7 +138,8 @@ async function scrape(url) {
           item.hoverStyles = hStyles;
         }
       } catch (e) {
-        // Skip elements that can't be hovered or found
+        // Log error for debugging but continue with other elements
+        console.warn(`Failed to capture hover styles for element ${selector}:`, e.message);
       }
     }
 
