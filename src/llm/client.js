@@ -190,4 +190,4 @@ async function mapSemanticRoles(data) {
   }
 }
 
-module.exports = { mapSemanticRoles, getClient };
+module.exports = { mapSemanticRoles, getClient, makeRawAPICall };

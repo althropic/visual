@@ -1,4 +1,4 @@
-const { getClient } = require('../llm/client');
+const { getClient, makeRawAPICall } = require('../llm/client');
 
 /**
  * Generates a component replacement guide using LLM.
@@ -11,20 +11,28 @@ async function rewriteComponent(componentCode, designTokens, namespace = 'extrac
   const prompt = buildRewritePrompt(componentCode, designTokens, namespace);
   
   try {
-    const client = getClient();
-    const response = await client.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are an expert React developer specializing in design system integration. Rewrite components to use extracted design tokens while maintaining functionality." 
-        },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.2
-    });
+    const messages = [
+      { 
+        role: "system", 
+        content: "You are an expert React developer specializing in design system integration. Rewrite components to use extracted design tokens while maintaining functionality." 
+      },
+      { role: "user", content: prompt }
+    ];
     
-    let content = response.choices[0].message.content;
+    let content;
+    
+    // Use raw API call for local LLMs
+    if (process.env.OPENAI_BASE_URL) {
+      content = await makeRawAPICall(messages, process.env.OPENAI_MODEL || "gpt-4o");
+    } else {
+      const client = getClient();
+      const response = await client.chat.completions.create({
+        model: process.env.OPENAI_MODEL || "gpt-4o",
+        messages: messages,
+        temperature: 0.2
+      });
+      content = response.choices[0].message.content;
+    }
     
     // Parse response
     const codeMatch = content.match(/```(?:jsx|javascript|tsx|typescript)?\s*\n([\s\S]*?)\n```/);

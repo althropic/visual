@@ -1,4 +1,4 @@
-const { getClient } = require('../llm/client');
+const { getClient, makeRawAPICall } = require('../llm/client');
 
 /**
  * Generates React component code from archetype specifications using LLM.
@@ -60,20 +60,28 @@ async function generateAtomComponent(atom, designTokens) {
   const prompt = buildAtomPrompt(atom, designTokens);
   
   try {
-    const client = getClient();
-    const response = await client.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are an expert React developer. Generate clean, functional React components using Tailwind CSS. Return ONLY the component code, no explanations or markdown." 
-        },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.3
-    });
+    const messages = [
+      { 
+        role: "system", 
+        content: "You are an expert React developer. Generate clean, functional React components using Tailwind CSS. Return ONLY the component code, no explanations or markdown." 
+      },
+      { role: "user", content: prompt }
+    ];
     
-    let code = response.choices[0].message.content;
+    let code;
+    
+    // Use raw API call for local LLMs
+    if (process.env.OPENAI_BASE_URL) {
+      code = await makeRawAPICall(messages, process.env.OPENAI_MODEL || "gpt-4o");
+    } else {
+      const client = getClient();
+      const response = await client.chat.completions.create({
+        model: process.env.OPENAI_MODEL || "gpt-4o",
+        messages: messages,
+        temperature: 0.3
+      });
+      code = response.choices[0].message.content;
+    }
     
     // Clean up markdown code blocks if present
     code = code.replace(/```(?:jsx|javascript|tsx|typescript)?\s*\n?/g, '').replace(/```\s*$/g, '').trim();
@@ -95,20 +103,28 @@ async function generateMoleculeComponent(molecule, designTokens) {
   const prompt = buildMoleculePrompt(molecule, designTokens);
   
   try {
-    const client = getClient();
-    const response = await client.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are an expert React developer. Generate clean, functional React components using Tailwind CSS. Return ONLY the component code, no explanations or markdown." 
-        },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.3
-    });
+    const messages = [
+      { 
+        role: "system", 
+        content: "You are an expert React developer. Generate clean, functional React components using Tailwind CSS. Return ONLY the component code, no explanations or markdown." 
+      },
+      { role: "user", content: prompt }
+    ];
     
-    let code = response.choices[0].message.content;
+    let code;
+    
+    // Use raw API call for local LLMs
+    if (process.env.OPENAI_BASE_URL) {
+      code = await makeRawAPICall(messages, process.env.OPENAI_MODEL || "gpt-4o");
+    } else {
+      const client = getClient();
+      const response = await client.chat.completions.create({
+        model: process.env.OPENAI_MODEL || "gpt-4o",
+        messages: messages,
+        temperature: 0.3
+      });
+      code = response.choices[0].message.content;
+    }
     
     // Clean up markdown code blocks if present
     code = code.replace(/```(?:jsx|javascript|tsx|typescript)?\s*\n?/g, '').replace(/```\s*$/g, '').trim();
@@ -130,20 +146,28 @@ async function generateShellComponent(shell, designTokens) {
   const prompt = buildShellPrompt(shell, designTokens);
   
   try {
-    const client = getClient();
-    const response = await client.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are an expert React developer. Generate clean, functional React components using Tailwind CSS. Return ONLY the component code, no explanations or markdown." 
-        },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.3
-    });
+    const messages = [
+      { 
+        role: "system", 
+        content: "You are an expert React developer. Generate clean, functional React components using Tailwind CSS. Return ONLY the component code, no explanations or markdown." 
+      },
+      { role: "user", content: prompt }
+    ];
     
-    let code = response.choices[0].message.content;
+    let code;
+    
+    // Use raw API call for local LLMs
+    if (process.env.OPENAI_BASE_URL) {
+      code = await makeRawAPICall(messages, process.env.OPENAI_MODEL || "gpt-4o");
+    } else {
+      const client = getClient();
+      const response = await client.chat.completions.create({
+        model: process.env.OPENAI_MODEL || "gpt-4o",
+        messages: messages,
+        temperature: 0.3
+      });
+      code = response.choices[0].message.content;
+    }
     
     // Clean up markdown code blocks if present
     code = code.replace(/```(?:jsx|javascript|tsx|typescript)?\s*\n?/g, '').replace(/```\s*$/g, '').trim();
