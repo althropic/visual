@@ -2,6 +2,7 @@ const { scrape } = require('./scraper');
 const { analyzeColors } = require('./analyzer/colors');
 const { analyzeSpatial } = require('./analyzer/spatial');
 const { analyzeArchetypes } = require('./analyzer/archetypes');
+const { analyzeHoverStates } = require('./analyzer/hover');
 const { mapSemanticRoles } = require('./llm/client');
 const { generateDesignDoc } = require('./generator/design-md');
 const { generateTailwindConfig } = require('./generator/tailwind-config');
@@ -29,9 +30,13 @@ async function extractDesign(url, outputDir = 'dist') {
     console.log('Identifying archetypal components...');
     const archetypes = analyzeArchetypes(styles);
 
+    // Analyze hover states for interactive elements
+    console.log('Analyzing hover state interactions...');
+    const hoverStates = analyzeHoverStates(styles);
+
     // 3. LLM Semantic Mapping & Component Generation
     console.log('Mapping semantic roles and generating components via LLM...');
-    const designData = await mapSemanticRoles({ colors, spatial, archetypes });
+    const designData = await mapSemanticRoles({ colors, spatial, archetypes, hoverStates });
 
     // 4. Create output structure
     console.log(`Creating output directory: ${outputDir}`);
@@ -57,6 +62,11 @@ async function extractDesign(url, outputDir = 'dist') {
   --text-main: ${designData.colorTokens.textMain};
   --text-muted: ${designData.colorTokens.textMuted};
   --base-unit: ${designData.spatialTokens.baseUnit}px;
+  /* Interaction tokens */
+  --hover-color-shift: ${designData.interactionTokens?.hover?.colorShift || 'lighten'};
+  --hover-background-shift: ${designData.interactionTokens?.hover?.backgroundColorShift || 'darken'};
+  --hover-transform: ${designData.interactionTokens?.hover?.transformEffect || 'scale(1.05)'};
+  --hover-shadow: ${designData.interactionTokens?.hover?.shadowEffect || '0 4px 8px rgba(0,0,0,0.1)'};
 }`;
     await fs.writeFile(path.join(outputDir, 'theme.css'), themeCss);
 

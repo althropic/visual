@@ -35,11 +35,20 @@ async function mapSemanticRoles(data) {
     Data:
     Colors: ${JSON.stringify(data.colors)}
     Spatial: ${JSON.stringify(data.spatial)}
+    Hover States: ${JSON.stringify(data.hoverStates || {})}
     
     Return a structured JSON object with the following keys:
     - colorTokens: { primaryAction, secondaryAction, surface, textMain, textMuted }
     - spatialTokens: { baseUnit, containerPadding, stackGap }
     - typographyTokens: { scaleType, baseSize }
+    - interactionTokens: { 
+        hover: {
+          colorShift: string,
+          backgroundColorShift: string,
+          transformEffect: string,
+          shadowEffect: string
+        }
+      }
     
     IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.
   `;
@@ -90,6 +99,14 @@ async function mapSemanticRoles(data) {
       typographyTokens: {
         scaleType: 'Major Third',
         baseSize: '16px'
+      },
+      interactionTokens: {
+        hover: {
+          colorShift: 'lighten',
+          backgroundColorShift: 'darken',
+          transformEffect: 'scale(1.05)',
+          shadowEffect: '0 4px 8px rgba(0,0,0,0.1)'
+        }
       }
     };
   }

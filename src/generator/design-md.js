@@ -4,7 +4,18 @@
  * @returns {string} - The generated markdown content.
  */
 function generateDesignDoc(tokens) {
-  const { colorTokens, spatialTokens, typographyTokens } = tokens;
+  const { colorTokens, spatialTokens, typographyTokens, interactionTokens } = tokens;
+
+  // Generate interaction section if interactionTokens exist
+  const interactionSection = interactionTokens ? `
+## 4. Interaction System
+Interactive elements use consistent hover states to provide visual feedback.
+
+- **Color Shift:** ${interactionTokens.hover?.colorShift || 'N/A'}
+- **Background Shift:** ${interactionTokens.hover?.backgroundColorShift || 'N/A'}
+- **Transform Effect:** ${interactionTokens.hover?.transformEffect || 'N/A'}
+- **Shadow Effect:** ${interactionTokens.hover?.shadowEffect || 'N/A'}
+` : '';
 
   return `
 # DESIGN.md - Design System Manifesto
@@ -36,6 +47,7 @@ Typography is mapped to a geometric scale to ensure a clear visual hierarchy.
 
 - **Scale Type:** ${typographyTokens.scaleType}
 - **Base Font Size:** ${typographyTokens.baseSize}
+${interactionSection}
 `;
 }
 
