@@ -357,7 +357,7 @@ Flag any misalignment or suggest missing tasks.
 **Fix:** `"Go back to the first unchecked sub-step. AGENTS.md requires sequential completion."`
 
 ### ❌ Mistake: Agent doesn't commit
-**Fix:** `"Commit now. AGENTS.md requires automatic commits after each sub-step."`
+**Fix:** `"Commit now. AGENTS.md requires automatic commits after each task."`
 
 ### ❌ Mistake: Agent asks permission to commit
 **Fix:** `"Don't ask. AGENTS.md section 'Commits - AUTOMATIC AND MANDATORY' requires automatic commits."`
@@ -383,7 +383,7 @@ Flag any misalignment or suggest missing tasks.
 - ❌ "Start the auth thing"
 
 ### 📖 Reference AGENTS.md
-- ✅ "According to AGENTS.md, you must commit after each sub-step"
+- ✅ "According to AGENTS.md, you must commit after each task"
 - ❌ "You should probably commit"
 
 ### 🔄 Trust the Process

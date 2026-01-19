@@ -3,6 +3,7 @@ const { analyzeColors } = require('./analyzer/colors');
 const { analyzeSpatial } = require('./analyzer/spatial');
 const { analyzeArchetypes } = require('./analyzer/archetypes');
 const { analyzeHoverStates } = require('./analyzer/hover');
+const { analyzeAssets, extractLogos, downloadFavicons } = require('./analyzer/assets');
 const { mapSemanticRoles } = require('./llm/client');
 const { generateDesignDoc } = require('./generator/design-md');
 const { generateTailwindConfig } = require('./generator/tailwind-config');
@@ -20,7 +21,9 @@ async function extractDesign(url, outputDir = 'dist') {
   try {
     // 1. Scrape style data and assets
     console.log('Scraping style data and assets...');
-    const { styles, assets } = await scrape(url);
+    const scrapedData = await scrape(url);
+    const styles = scrapedData.styles;
+    const assets = scrapedData.assets;
 
     // 2. Run heuristic analysis
     console.log('Analyzing colors and spatial patterns...');
@@ -34,9 +37,18 @@ async function extractDesign(url, outputDir = 'dist') {
     console.log('Analyzing hover state interactions...');
     const hoverStates = analyzeHoverStates(styles);
 
+    // Analyze assets for logos and favicons
+    console.log('Analyzing asset data...');
+    const topLeftImage = analyzeAssets(assets, styles);
+    const logos = extractLogos(assets);
+    
+    // Download favicons
+    console.log('Downloading favicon assets...');
+    const downloadedFavicons = await downloadFavicons(assets.favicons || [], outputDir, scrapedData.page);
+
     // 3. LLM Semantic Mapping & Component Generation
     console.log('Mapping semantic roles and generating components via LLM...');
-    const designData = await mapSemanticRoles({ colors, spatial, archetypes, hoverStates });
+    const designData = await mapSemanticRoles({ colors, spatial, archetypes, hoverStates, assets: { topLeftImage, logos, favicons: downloadedFavicons } });
 
     // 4. Create output structure
     console.log(`Creating output directory: ${outputDir}`);

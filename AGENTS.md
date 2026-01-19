@@ -57,7 +57,7 @@ Rules and templates for AI agents. Read this at session start.
 **You MUST commit changes automatically after every meaningful action:**
 
 1. **When to Commit:**
-   - After completing each sub-step
+   - After completing each task.
    - After creating/modifying any source file
    - After running tests successfully
 
@@ -77,7 +77,7 @@ Rules and templates for AI agents. Read this at session start.
 
 4. **Atomic Commits:**
    - One logical change per commit
-   - One sub-step typically equals one commit
+   - One task typically equals one commit
    - Keep commits small and focused
 
 ### .gitignore Management - MANDATORY
@@ -149,7 +149,7 @@ Rules and templates for AI agents. Read this at session start.
 If a derived file is missing, create it using the appropriate template:
 
 - Missing `CONTEXT.md` → create with Tech Stack + Core Objectives
-- Missing `TASKS.md` → create with Backlog/Active/Done columns
+- Missing `TASKS.md` → create with Active/Backlog/Done columns
 
 Refer to GUIDE.md for examples and detailed instructions.
 
@@ -166,7 +166,8 @@ These templates are used by the genesis.ps1 script to scaffold new projects. The
 ### .gitignore Template
 
 ```
-*.md
+TASKS.md
+LOG.md
 !README.md
 !AGENTS.md
 !GUIDE.md

@@ -1,14 +1,15 @@
 const { chromium } = require('playwright');
 
 /**
- * Scrapes a URL and extracts computed styles from all visible elements.
+ * Scrapes a URL and extracts computed styles from all visible elements and asset information.
  * @param {string} url - The URL to scrape.
- * @returns {Promise<Array>} - A promise that resolves to an array of element style data.
+ * @returns {Promise<Object>} - A promise that resolves to an object containing style data, asset information, and page object.
  */
 async function scrape(url) {
   const browser = await chromium.launch({ headless: true });
+  let page;
   try {
-    const page = await browser.newPage();
+    page = await browser.newPage();
     // Navigate to URL and wait for network to be idle to ensure dynamic content is loaded
     await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
 
@@ -47,7 +48,8 @@ async function scrape(url) {
           borderRadius: style.borderRadius,
           boxShadow: style.boxShadow,
           border: style.border,
-          transition: style.transition
+          transition: style.transition,
+          zIndex: style.zIndex
         };
 
         // Enhanced interactive element detection
@@ -179,9 +181,48 @@ async function scrape(url) {
       return { ...item, styles: sanitizedStyles };
     });
 
-    return sanitizedData;
+    // Extract asset information including images and favicons
+    const assets = await page.evaluate(() => {
+      // Get favicon information
+      const faviconLinks = Array.from(document.querySelectorAll('link[rel*="icon"]'));
+      const favicons = faviconLinks.map(link => ({
+        href: link.href,
+        type: link.type || 'image/x-icon',
+        sizes: link.sizes ? link.sizes.value : null
+      }));
+
+      // Get all images
+      const images = Array.from(document.querySelectorAll('img')).map(img => ({
+        src: img.src,
+        alt: img.alt || null,
+        width: img.width,
+        height: img.height,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight
+      }));
+
+      // Get meta information for additional assets
+      const metaAssets = {
+        title: document.title,
+        description: document.querySelector('meta[name="description"]')?.content || null,
+        keywords: document.querySelector('meta[name="keywords"]')?.content || null
+      };
+
+      return {
+        favicons,
+        images,
+        meta: metaAssets
+      };
+    });
+
+    return {
+      styles: sanitizedData,
+      assets: assets,
+      page: page
+    };
   } finally {
-    await browser.close();
+    // Don't close the browser here - let the caller handle it
+    // await browser.close();
   }
 }
 
