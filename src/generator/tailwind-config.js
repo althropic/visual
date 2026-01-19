@@ -24,8 +24,47 @@ function generateTailwindConfig(tokens, colorAnalysis = null) {
     plugins: []
   };
 
+  // Clean up empty objects from config
+  const cleanedConfig = cleanEmptyObjects(config);
+
   return `/** @type {import('tailwindcss').Config} */
-module.exports = ${JSON.stringify(config, null, 2)};`;
+module.exports = ${JSON.stringify(cleanedConfig, null, 2)};`;
+}
+
+/**
+ * Recursively removes empty objects from configuration.
+ * @param {Object} obj - The object to clean.
+ * @returns {Object} - Cleaned object without empty nested objects.
+ */
+function cleanEmptyObjects(obj) {
+  if (typeof obj !== 'object' || obj === null) return obj;
+  
+  if (Array.isArray(obj)) {
+    return obj.map(cleanEmptyObjects).filter(item => {
+      if (typeof item === 'object' && item !== null) {
+        return Object.keys(item).length > 0;
+      }
+      return true;
+    });
+  }
+  
+  const cleaned = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const cleanedValue = cleanEmptyObjects(value);
+    
+    // Only include non-empty values
+    if (cleanedValue !== null && cleanedValue !== undefined) {
+      if (typeof cleanedValue === 'object' && !Array.isArray(cleanedValue)) {
+        if (Object.keys(cleanedValue).length > 0) {
+          cleaned[key] = cleanedValue;
+        }
+      } else {
+        cleaned[key] = cleanedValue;
+      }
+    }
+  }
+  
+  return cleaned;
 }
 
 /**
