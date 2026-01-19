@@ -4,6 +4,11 @@
 
 ## Active
 
+### Extraction: Run on google.com (Test the design extraction process)
+- [ ] Configure .env with valid API key
+- [ ] Run `node bin/cli.js https://google.com`
+- [ ] Verify `DESIGN.md` output
+
 ## Done
 
 ### LLM: Configure local provider support (Update client to support custom base URL and model ID)
