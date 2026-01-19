@@ -1,15 +1,26 @@
 {
   "name": "bioses-incite",
   "version": "1.0.0",
-  "description": "```markdown # design-extractor-auto",
-  "main": "index.js",
+  "description": "Design extraction and cloning tool - captures design systems from websites",
+  "main": "src/index.js",
+  "bin": {
+    "bioses-incite": "./bin/cli.js"
+  },
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "extract": "node bin/cli.js"
   },
-  "keywords": [],
+  "keywords": [
+    "design-system",
+    "design-extraction",
+    "tailwind",
+    "react",
+    "components",
+    "web-scraping"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
