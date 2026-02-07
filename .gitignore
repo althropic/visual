@@ -1,39 +1,25 @@
+# IDE
+.vscode/
+.kiro/
+.clinerules
+
 # Documentation (keep local)
-TASKS.md
-LOG.md
+.md/*.md
+!README.md
 
-# Other markdown files (tracked)
-# !AGENTS.md
-# !GUIDE.md
-# !CONTEXT.md
-# !README.md
-
-# Dependencies
+# Node.js
 node_modules/
-__pycache__/
-*.pyc
-venv/
-.venv/
+package-lock.json
+.npm/
 
 # Environment
 .env
 .env.local
-.env.*.local
 
-# IDE
-.idea/
-*.swp
-*.swo
-*~
+# Testing
+coverage/
+.nyc_output/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Build outputs
+# Build
 dist/
 build/
-*.log
-
-# Rule files
-.clinerules
