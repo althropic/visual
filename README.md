@@ -1,10 +1,10 @@
-# bioses-incite
+# visual-mirror
 
 Design extraction and cloning tool — captures complete design systems from any website and generates React components with Tailwind CSS.
 
 ## Overview
 
-`bioses-incite` is a CLI tool that scrapes a target website, analyzes its visual design (colors, spacing, typography, component patterns), and uses LLM intelligence to generate a portable design system package including React components, Tailwind configuration, and comprehensive documentation.
+`visual-mirror` is a CLI tool that scrapes a target website, analyzes its visual design (colors, spacing, typography, component patterns), and uses LLM intelligence to generate a portable design system package including React components, Tailwind configuration, and comprehensive documentation.
 
 ## Installation
 
@@ -30,10 +30,10 @@ OPENAI_MODEL=gpt-4o  # optional, defaults to gpt-4o
 npm install -g .
 
 # Extract design from a website
-bioses-incite https://example.com
+visual-mirror https://example.com
 
 # Specify custom output directory
-bioses-incite https://example.com my-design-system
+visual-mirror https://example.com my-design-system
 ```
 
 ### Local (via npm script)
@@ -81,7 +81,7 @@ dist/
 ## Project Structure
 
 ```
-bioses-incite/
+visual-mirror/
 ├── bin/
 │   └── cli.js          # CLI entry point
 ├── src/
