@@ -1,71 +1,120 @@
-# design-extractor-auto
+# bioses-incite
 
-Automated design system extractor that generates a `DESIGN.md` manifesto from any URL.
+Design extraction and cloning tool — captures complete design systems from any website and generates React components with Tailwind CSS.
 
 ## Overview
-This tool navigates to a target URL, extracts computed styles from visible DOM nodes, and uses heuristic analysis combined with LLM reasoning (GPT-4o or compatible) to identify and document the underlying design system (colors, spacing, typography).
 
-## Getting Started
+`bioses-incite` is a CLI tool that scrapes a target website, analyzes its visual design (colors, spacing, typography, component patterns), and uses LLM intelligence to generate a portable design system package including React components, Tailwind configuration, and comprehensive documentation.
 
-### Prerequisites
-- Node.js (LTS)
-- OpenAI API Key (or local provider)
+## Installation
 
-### Installation
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up environment variables:
-   - Create a `.env` file based on `.env.example`
-   - Add your `OPENAI_API_KEY`
-   - (Optional) Add `OPENAI_BASE_URL` and `OPENAI_MODEL` for local or custom providers (e.g., Ollama, LocalAI).
+```bash
+npm install
+```
 
-#### Using a Local Provider
-To use a local OpenAI-compatible provider (like Ollama), configure your `.env` file as follows:
+## Configuration
+
+Create a `.env` file with your OpenAI API key:
+
 ```env
-OPENAI_API_KEY=not-needed-for-local
-OPENAI_BASE_URL=http://localhost:5050/ollama/api
-OPENAI_MODEL=kimi-k2-thinking
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=gpt-4o  # optional, defaults to gpt-4o
 ```
 
 ## Usage
 
 ### CLI
-Run the extractor from the command line:
+
 ```bash
-node bin/cli.js <url> [output-path]
+# Install globally
+npm install -g .
+
+# Extract design from a website
+bioses-incite https://example.com
+
+# Specify custom output directory
+bioses-incite https://example.com my-design-system
 ```
-Example:
+
+### Local (via npm script)
+
 ```bash
-node bin/cli.js https://example.com my-design.md
+npm run extract -- https://example.com
 ```
 
-### Programmatic API
-```javascript
-const { extractDesign } = require('./src/index');
+### Options
 
-(async () => {
-  const tokens = await extractDesign('https://example.com');
-  console.log('Detected Tokens:', tokens);
-})();
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `url` | Target website URL to extract | (required) |
+| `output-dir` | Output directory for design package | `dist` |
+
+## Output Structure
+
+The tool generates a complete design system package:
+
+```
+dist/
+├── components/          # React components (.jsx)
+│   ├── index.js        # Component library entry
+│   └── README.md       # Component documentation
+├── assets/
+│   ├── logos/          # Extracted logos
+│   └── favicons/       # Favicons
+├── styles/
+│   └── theme.css       # CSS custom properties
+├── tailwind.config.js  # Tailwind configuration
+├── DESIGN.md           # Design system documentation
+├── package.json        # Design system package info
+└── README.md           # Usage guide
 ```
 
-## Output Format (`DESIGN.md`)
-The generated manifesto follows the "Groundwork" principles:
-- **Color Palette:** Semantic roles (Primary Action, Surface, etc.) assigned to hex values.
-- **Spatial System:** Detected base unit (e.g., 8pt grid) and common spacing patterns.
-- **Typography Hierarchy:** Geometric scale mapping and base font sizes.
+## Features
+
+- **Visual Analysis**: Extracts color palettes, spacing scales, typography, and layout patterns
+- **Component Detection**: Identifies archetypal UI components (buttons, cards, inputs, etc.)
+- **Hover State Capture**: Analyzes interaction patterns and animations
+- **Asset Extraction**: Downloads logos, favicons, and brand assets
+- **LLM-Powered**: Uses OpenAI for semantic mapping and intelligent component generation
+- **React Generation**: Produces production-ready React components with Tailwind classes
 
 ## Project Structure
-- `src/scraper.js`: Playwright extraction engine.
-- `src/analyzer/`: Heuristic clustering for colors and spatial patterns.
-- `src/llm/`: OpenAI GPT-4o semantic mapping integration.
-- `src/generator/`: Markdown manifesto formatter.
-- `bin/cli.js`: Command-line interface.
 
-## Troubleshooting
-- **Missing API Key:** Ensure `OPENAI_API_KEY` is set in your `.env` file.
-- **Navigation Timeout:** Increase the timeout in `src/scraper.js` if the target site is slow.
-- **Playwright Errors:** Ensure browser binaries are installed via `npx playwright install`.
+```
+bioses-incite/
+├── bin/
+│   └── cli.js          # CLI entry point
+├── src/
+│   ├── analyzer/       # Design analysis modules
+│   │   ├── archetypes.js
+│   │   ├── assets.js
+│   │   ├── colors.js
+│   │   ├── hover.js
+│   │   ├── spatial.js
+│   │   └── typography.js
+│   ├── generator/      # Code generation
+│   │   ├── component-index.js
+│   │   ├── design-md.js
+│   │   ├── fragment-components.js
+│   │   ├── react-components.js
+│   │   └── tailwind-config.js
+│   ├── llm/            # LLM client
+│   │   └── client.js
+│   ├── index.js        # Main orchestration
+│   └── scraper.js      # Web scraping
+├── tests/              # Test files
+├── package.json
+└── README.md
+```
+
+## Dependencies
+
+- `playwright` — Web scraping and browser automation
+- `openai` — LLM integration for design analysis
+- `chroma-js` — Color manipulation and analysis
+- `simple-statistics` — Statistical analysis for design patterns
+- `dotenv` — Environment variable management
+
+## License
+
+ISC
