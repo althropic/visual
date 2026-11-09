@@ -1,3 +1,7 @@
+'use strict';
+
+const { logger } = require('../logger');
+
 /**
  * Analyzes asset data to find the highest z-index image in the top-left quadrant.
  * @param {Object} assets - Asset data from the scraper.
@@ -51,7 +55,7 @@ async function downloadFavicons(favicons, outputDir, page) {
   try {
     await fs.mkdir(assetsDir, { recursive: true });
   } catch (err) {
-    console.warn('Could not create assets directory:', err);
+    logger.warn(`Could not create assets directory: ${err.message}`);
   }
   
   const downloadedFavicons = [];
@@ -75,7 +79,7 @@ async function downloadFavicons(favicons, outputDir, page) {
         });
       }
     } catch (err) {
-      console.warn(`Failed to download favicon ${favicon.href}:`, err.message);
+      logger.warn(`Failed to download favicon ${favicon.href}: ${err.message}`);
       // Continue with other favicons even if one fails
     }
   }
@@ -99,7 +103,7 @@ async function downloadLogos(images, outputDir, page) {
   try {
     await fs.mkdir(logosDir, { recursive: true });
   } catch (err) {
-    console.warn('Could not create logos directory:', err);
+    logger.warn(`Could not create logos directory: ${err.message}`);
   }
   
   const downloadedLogos = [];
@@ -145,7 +149,7 @@ async function downloadLogos(images, outputDir, page) {
         });
       }
     } catch (err) {
-      console.warn(`Failed to download logo ${logo.src}:`, err.message);
+      logger.warn(`Failed to download logo ${logo.src}: ${err.message}`);
     }
   }
   
