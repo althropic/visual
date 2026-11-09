@@ -1,4 +1,7 @@
+'use strict';
+
 const chroma = require('chroma-js');
+const { config } = require('../config');
 
 /**
  * Generates a color scale (50-950) from a base color.
@@ -89,7 +92,9 @@ function analyzeColors(styleData) {
   // Basic clustering: group very similar colors
   const palette = [];
   sortedColors.forEach(color => {
-    const isSimilar = palette.some(p => chroma.distance(color, p) < 5);
+    const isSimilar = palette.some(
+      p => chroma.distance(color, p) < config.analyzer.colorSimilarityThreshold
+    );
     if (!isSimilar) {
       palette.push(color);
     }
