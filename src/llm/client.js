@@ -1,20 +1,23 @@
+'use strict';
+
 const OpenAI = require('openai');
-require('dotenv').config();
+const { config } = require('../config');
+const { logger } = require('../logger');
 
 // Initialize lazily to avoid errors during testing/mocking
 let openai;
 function getClient() {
   if (!openai) {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!config.llm.apiKey) {
       throw new Error('Missing OPENAI_API_KEY environment variable');
     }
-    const options = {
-      apiKey: process.env.OPENAI_API_KEY,
-    };
+    const options = { apiKey: config.llm.apiKey };
 
-    // Support for local providers or custom base URLs
-    if (process.env.OPENAI_BASE_URL) {
-      options.baseURL = process.env.OPENAI_BASE_URL;
+    if (config.llm.baseURL) {
+      options.baseURL = config.llm.baseURL;
+      logger.info(`LLM backend: local provider at ${config.llm.baseURL}`);
+    } else {
+      logger.info('LLM backend: OpenAI API');
     }
 
     openai = new OpenAI(options);
@@ -29,20 +32,20 @@ function getClient() {
  * @returns {Promise<string>} - Response content
  */
 async function makeRawAPICall(messages, model) {
-  const baseURL = process.env.OPENAI_BASE_URL;
+  const baseURL = config.llm.baseURL;
   const url = `${baseURL}/chat/completions`;
-  
+
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY || 'not-needed'}`,
+      'Authorization': `Bearer ${config.llm.apiKey || 'not-needed'}`,
     },
     body: JSON.stringify({
       model: model,
       messages: messages,
-      temperature: 0.3,
-      stream: false, // Explicitly disable streaming
+      temperature: config.llm.temperature,
+      stream: false,
     }),
   });
   
@@ -124,8 +127,9 @@ async function mapSemanticRoles(data) {
   
   try {
     // Use raw API call for local LLMs that might stream
-    if (process.env.OPENAI_BASE_URL) {
-      const content = await makeRawAPICall(messages, process.env.OPENAI_MODEL || "gpt-4o");
+    if (config.llm.baseURL) {
+      logger.info(`Calling local LLM: ${config.llm.model}`);
+      const content = await makeRawAPICall(messages, config.llm.model);
       
       // Extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
@@ -135,9 +139,10 @@ async function mapSemanticRoles(data) {
     }
     
     // Use OpenAI SDK for official API
+    logger.info(`Calling OpenAI API: ${config.llm.model}`);
     const client = getClient();
     const response = await client.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o",
+      model: config.llm.model,
       messages: messages,
       response_format: { type: "json_object" }
     });
