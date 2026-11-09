@@ -1,9 +1,13 @@
+'use strict';
+
+const { config } = require('./config');
+const { logger } = require('./logger');
 const { scrape } = require('./scraper');
 const { analyzeColors } = require('./analyzer/colors');
 const { analyzeSpatial, analyzeLayoutFulcrum } = require('./analyzer/spatial');
 const { analyzeArchetypes } = require('./analyzer/archetypes');
 const { analyzeHoverStates } = require('./analyzer/hover');
-const { analyzeTypography, generateTypographyScale } = require('./analyzer/typography');
+const { analyzeTypography } = require('./analyzer/typography');
 const { analyzeAssets, extractLogos, downloadFavicons, downloadLogos } = require('./analyzer/assets');
 const { mapSemanticRoles } = require('./llm/client');
 const { generateDesignDoc } = require('./generator/design-md');
