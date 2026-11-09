@@ -1,17 +1,22 @@
+'use strict';
+
 const { chromium } = require('playwright');
+const { config } = require('./config');
+const { logger } = require('./logger');
 
 /**
  * Scrapes a URL and extracts computed styles from all visible elements and asset information.
+ * Returns the browser instance so the caller can close it after downstream work finishes.
  * @param {string} url - The URL to scrape.
- * @returns {Promise<Object>} - A promise that resolves to an object containing style data, asset information, and page object.
+ * @returns {Promise<Object>} - { styles, assets, fragments, page, browser }
  */
 async function scrape(url) {
   const browser = await chromium.launch({ headless: true });
   let page;
   try {
     page = await browser.newPage();
-    // Navigate to URL and wait for network to be idle to ensure dynamic content is loaded
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
+    logger.info(`Navigating to ${url}`);
+    await page.goto(url, { waitUntil: 'networkidle', timeout: config.scraper.networkIdleTimeout });
 
     // Extract computed styles from all elements including state changes
     const data = await page.evaluate(async () => {
@@ -92,7 +97,8 @@ async function scrape(url) {
     });
 
     // Handle actual hover capture for detected interactive elements with delta calculation
-    const interactiveElements = data.filter(item => item.isInteractive).slice(0, 15);
+    const interactiveElements = data.filter(item => item.isInteractive)
+      .slice(0, config.scraper.maxInteractiveHovers);
     for (const item of interactiveElements) {
       // Define selector outside try block so it's available in catch
       // Simple CSS escape for IDs and classes
@@ -137,7 +143,7 @@ async function scrape(url) {
         }
         
         // Wait longer for transitions to complete
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(config.scraper.hoverWaitMs);
 
         const hoverStyles = await page.evaluate((sel) => {
           const el = document.querySelector(sel);
@@ -190,7 +196,7 @@ async function scrape(url) {
         }
       } catch (e) {
         // Log error for debugging but continue with other elements
-        console.warn(`Failed to capture hover styles for element ${selector}:`, e.message);
+        logger.warn(`Failed to capture hover styles for element ${selector}: ${e.message}`);
       }
     }
 
@@ -249,21 +255,26 @@ async function scrape(url) {
       styles: sanitizedData,
       assets: assets,
       fragments: fragments,
-      page: page
+      page: page,
+      browser: browser,  // exposed so caller can close after downstream work
     };
   } finally {
-    // Don't close the browser here - let the caller handle it
-    // await browser.close();
+    // Browser is intentionally NOT closed here — caller closes it after
+    // all downstream asset downloads (which need page.request) are done.
   }
 }
 
 /**
  * Extracts HTML fragments from complex or frequently occurring elements.
- * @param {Page} page - Playwright page object.
+ * @param {import('playwright').Page} page - Playwright page object.
  * @returns {Promise<Array>} - Array of HTML fragments with metadata.
  */
 async function extractHTMLFragments(page) {
-  return await page.evaluate(() => {
+  const { fragmentMinChildren, fragmentMaxChildren, fragmentMaxHtmlBytes, maxFragments } =
+    config.scraper;
+
+  return await page.evaluate(
+    ({ minChildren, maxChildren, maxBytes, maxFrags }) => {
     const fragments = [];
     const elementSignatures = new Map();
     
@@ -272,9 +283,9 @@ async function extractHTMLFragments(page) {
     
     allElements.forEach(el => {
       const childCount = el.children.length;
-      
-      // Only consider elements with 3-20 children (molecules/shells)
-      if (childCount < 3 || childCount > 20) return;
+
+      // Only consider elements with configured child range (molecules/shells)
+      if (childCount < minChildren || childCount > maxChildren) return;
       
       // Skip if element is too large (likely a container)
       const rect = el.getBoundingClientRect();
@@ -298,8 +309,8 @@ async function extractHTMLFragments(page) {
         
         // Get outerHTML but limit size
         let html = sample.outerHTML;
-        if (html.length > 5000) {
-          html = html.substring(0, 5000) + '...';
+        if (html.length > maxBytes) {
+          html = html.substring(0, maxBytes) + '...';
         }
         
         // Get computed styles for the container
