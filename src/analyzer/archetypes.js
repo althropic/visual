@@ -1,3 +1,7 @@
+'use strict';
+
+const { config } = require('../config');
+
 /**
  * Analyzes DOM element structures to identify archetypal components.
  * @param {Array} styleData - Array of element data from the scraper.
@@ -12,7 +16,7 @@ function analyzeArchetypes(styleData) {
   
   // Identify frequent pattern groups as potential components
   const commonPatternGroups = Object.entries(groupedPatterns)
-    .filter(([_, group]) => group.count >= 2) // Lower threshold for grouped patterns
+    .filter(([_, group]) => group.count >= config.analyzer.archetypeMinCount)
     .sort((a, b) => b[1].count - a[1].count);
 
   const archetypes = {
@@ -98,7 +102,7 @@ function groupSimilarPatterns(treePatterns, styleData) {
     // Check against existing groups
     Object.keys(groupedPatterns).forEach(groupBase => {
       const similarity = calculatePatternSimilarity(pattern, groupBase);
-      if (similarity > bestScore && similarity > 0.7) { // Threshold for similarity
+      if (similarity > bestScore && similarity > config.analyzer.archetypeSimilarityThreshold) {
         bestScore = similarity;
         bestMatch = groupBase;
       }
