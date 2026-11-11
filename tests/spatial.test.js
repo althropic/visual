@@ -1,39 +1,34 @@
+'use strict';
+
 const { analyzeSpatial } = require('../src/analyzer/spatial');
 
-function runTests() {
-  console.log('Running spatial analysis tests...');
+const mockStyleData = [
+  { styles: { marginTop: '8px', paddingLeft: '16px', gap: '24px' }, rect: { x: 0, y: 0, width: 500, height: 100 } },
+  { styles: { marginBottom: '32px', paddingRight: '8px' }, rect: { x: 0, y: 100, width: 500, height: 100 } },
+  { styles: { marginTop: '0px', padding: '16px' }, rect: { x: 0, y: 200, width: 500, height: 100 } },
+  { styles: { marginLeft: '40px', gap: '8px' }, rect: { x: 40, y: 300, width: 460, height: 100 } },
+  { styles: { marginTop: '7px' }, rect: { x: 0, y: 400, width: 500, height: 100 } },
+];
 
-  const mockStyleData = [
-    { styles: { marginTop: '8px', paddingLeft: '16px', gap: '24px' } },
-    { styles: { marginBottom: '32px', paddingRight: '8px' } },
-    { styles: { marginTop: '0px', padding: '16px' } },
-    { styles: { marginLeft: '40px', gap: '8px' } },
-    { styles: { marginTop: '7px' } } // 7px is an outlier for 8pt grid
-  ];
+describe('analyzeSpatial', () => {
+  let results;
+  beforeAll(() => { results = analyzeSpatial(mockStyleData); });
 
-  const results = analyzeSpatial(mockStyleData);
+  test('detects 8px base unit', () => {
+    expect(results.baseUnit).toBe(8);
+  });
 
-  // Assertion 1: Check base unit detection (8pt grid)
-  if (results.baseUnit !== 8) {
-    throw new Error(`Incorrect base unit: ${results.baseUnit}`);
-  }
-  console.log('✓ Detected 8px base unit correctly');
+  test('identifies 8px and 16px as common spacings', () => {
+    expect(results.commonSpacings).toContain(8);
+    expect(results.commonSpacings).toContain(16);
+  });
 
-  // Assertion 2: Check common spacings
-  if (!results.commonSpacings.includes(8) || !results.commonSpacings.includes(16)) {
-    throw new Error(`Common spacings missing: ${results.commonSpacings}`);
-  }
-  console.log('✓ Identified common spacing values correctly');
+  test('grid consistency score is above 0.8', () => {
+    expect(results.gridConsistency).toBeGreaterThanOrEqual(0.8);
+  });
 
-  // Assertion 3: Check grid consistency score
-  // Total spacing values: 3 (item 0) + 2 (item 1) + 1 (item 2, ignoring 0px) + 2 (item 3) + 1 (item 4) = 9
-  // Multiples of 8: 8, 16, 24, 32, 8, 16, 40, 8 (8 out of 9)
-  if (results.gridConsistency < 0.8) {
-    throw new Error(`Grid consistency too low: ${results.gridConsistency}`);
-  }
-  console.log(`✓ Grid consistency score: ${results.gridConsistency.toFixed(2)}`);
-
-  console.log('\nAll spatial analysis tests passed!');
-}
-
-runTests();
+  test('returns layout object with gutters array', () => {
+    expect(results.layout).toHaveProperty('gutters');
+    expect(Array.isArray(results.layout.gutters)).toBe(true);
+  });
+});
