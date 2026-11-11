@@ -1,5 +1,8 @@
 'use strict';
 
+const fs   = require('fs').promises;
+const path = require('path');
+
 const { config } = require('./config');
 const { logger } = require('./logger');
 const { scrape } = require('./scraper');
