@@ -18,297 +18,118 @@ const { generateTailwindConfig } = require('./generator/tailwind-config');
 const { generateReactComponents } = require('./generator/react-components');
 const { generateFragmentComponents } = require('./generator/fragment-components');
 const { generateComponentIndex, generateComponentReadme } = require('./generator/component-index');
-const fs = require('fs').promises;
-const path = require('path');
+const { generateThemeCSS, generatePackageJson, generateMainReadme } = require('./generator/templates');
+
+logger.setLevel(config.logLevel);
+logger.info('Config loaded', {
+  model: config.llm.model,
+  baseURL: config.llm.baseURL || '(openai)',
+  logLevel: config.logLevel,
+  defaultOutputDir: config.output.defaultOutputDir,
+});
 
 /**
- * Main orchestration function to extract design system from a URL.
- * @param {string} url - The target URL.
- * @param {string} outputDir - The directory to save the design package.
+ * Full pipeline: scrape → analyse → LLM → generate → write.
+ * @param {string} url
+ * @param {string} [outputDir]
+ * @returns {Promise<Object>} resolved design tokens
  */
-async function extractDesign(url, outputDir = 'dist') {
-  console.log(`Starting "True Capture" extraction for: ${url}`);
+async function extractDesign(url, outputDir = config.output.defaultOutputDir) {
+  logger.info(`Starting extraction for: ${url}`);
+  let scrapeResult;
 
   try {
-    // 1. Scrape style data and assets
-    console.log('Scraping style data and assets...');
-    const scrapedData = await scrape(url);
-    const styles = scrapedData.styles;
-    const assets = scrapedData.assets;
-    const fragments = scrapedData.fragments || [];
+    // Phase 1: Scrape
+    logger.info('Phase 1: scraping');
+    scrapeResult = await scrape(url);
+    const { styles, assets, fragments = [] } = scrapeResult;
 
-    // 2. Run heuristic analysis
-    console.log('Analyzing colors and spatial patterns...');
-    const colors = analyzeColors(styles);
-    const spatial = analyzeSpatial(styles);
+    // Phase 2: Heuristic analysis
+    logger.info('Phase 2: heuristic analysis');
+    const colors       = analyzeColors(styles);
+    const spatial      = analyzeSpatial(styles);
     const layoutFulcrum = analyzeLayoutFulcrum(styles);
-    const typography = analyzeTypography(styles);
-    
-    console.log('Identifying archetypal components...');
-    const archetypes = analyzeArchetypes(styles);
+    const typography   = analyzeTypography(styles);
+    const archetypes   = analyzeArchetypes(styles);
+    const hoverStates  = analyzeHoverStates(styles);
+    logger.debug('Archetypes', { atoms: archetypes.atoms.length, molecules: archetypes.molecules.length, shells: archetypes.shells.length });
 
-    // Analyze hover states for interactive elements
-    console.log('Analyzing hover state interactions...');
-    const hoverStates = analyzeHoverStates(styles);
+    // Phase 3: Asset download
+    logger.info('Phase 3: downloading assets');
+    const topLeftImage    = analyzeAssets(assets, styles);
+    const logos           = extractLogos(assets);
+    const downloadedFavicons = await downloadFavicons(assets.favicons || [], outputDir, scrapeResult.page);
+    const downloadedLogos    = await downloadLogos(assets.images   || [], outputDir, scrapeResult.page);
+    logger.info(`Downloaded ${downloadedFavicons.length} favicons, ${downloadedLogos.length} logos`);
 
-    // Analyze assets for logos and favicons
-    console.log('Analyzing asset data...');
-    const topLeftImage = analyzeAssets(assets, styles);
-    const logos = extractLogos(assets);
-    
-    // Download favicons
-    console.log('Downloading favicon assets...');
-    const downloadedFavicons = await downloadFavicons(assets.favicons || [], outputDir, scrapedData.page);
-    
-    // Download logos
-    console.log('Downloading logo assets...');
-    const downloadedLogos = await downloadLogos(assets.images || [], outputDir, scrapedData.page);
+    // Phase 4: LLM semantic mapping
+    logger.info('Phase 4: LLM semantic mapping');
+    const designData = await mapSemanticRoles({
+      colors, spatial, layoutFulcrum, typography, archetypes, hoverStates,
+      assets: { topLeftImage, logos, favicons: downloadedFavicons, downloadedLogos },
+    });
+    logger.debug('Design tokens resolved', designData);
 
-    // 3. LLM Semantic Mapping & Component Generation
-    console.log('Mapping semantic roles and generating components via LLM...');
-    const designData = await mapSemanticRoles({ colors, spatial, layoutFulcrum, typography, archetypes, hoverStates, assets: { topLeftImage, logos, favicons: downloadedFavicons, downloadedLogos } });
-    
-    // Generate React components from archetypes
-    console.log('Generating React components from archetypes...');
-    const reactComponents = await generateReactComponents(archetypes, designData);
-    
-    // Generate components from HTML fragments
-    console.log('Generating components from HTML fragments...');
+    // Phase 5: Component generation
+    logger.info('Phase 5: generating React components');
+    const reactComponents    = await generateReactComponents(archetypes, designData);
     const fragmentComponents = await generateFragmentComponents(fragments, designData);
+    const allComponents      = { ...reactComponents, ...fragmentComponents };
+    logger.info(`Generated ${Object.keys(allComponents).length} components`);
 
-    // 4. Create output structure
-    console.log(`Creating output directory: ${outputDir}`);
+    // Phase 6: Write output
+    logger.info(`Phase 6: writing design package to "${outputDir}"`);
     await createDistStructure(outputDir);
-
-    // 5. Generate and save implementation files
-    console.log('Saving implementation files...');
     await saveDesignPackage(outputDir, {
-      designData,
-      colors,
-      reactComponents,
-      fragmentComponents,
-      archetypes,
-      assets: { topLeftImage, logos, favicons: downloadedFavicons }
+      designData, colors, reactComponents, fragmentComponents, archetypes,
+      assets: { topLeftImage, logos, favicons: downloadedFavicons },
     });
 
-    console.log(`Successfully captured design package at: ${outputDir}`);
-
+    logger.info(`Extraction complete: ${outputDir}`);
     return designData;
   } catch (error) {
-    console.error('Design extraction failed:', error);
+    logger.error('Extraction failed', error);
     throw error;
+  } finally {
+    if (scrapeResult?.browser) {
+      try { await scrapeResult.browser.close(); } catch (_) {}
+    }
   }
 }
 
-/**
- * Creates the complete dist/ folder structure for the design package.
- * @param {string} outputDir - The output directory path.
- */
+/** @param {string} outputDir */
 async function createDistStructure(outputDir) {
-  // Create main directories
-  await fs.mkdir(outputDir, { recursive: true });
-  await fs.mkdir(path.join(outputDir, 'components'), { recursive: true });
-  await fs.mkdir(path.join(outputDir, 'assets'), { recursive: true });
-  await fs.mkdir(path.join(outputDir, 'assets', 'logos'), { recursive: true });
-  await fs.mkdir(path.join(outputDir, 'assets', 'favicons'), { recursive: true });
-  await fs.mkdir(path.join(outputDir, 'styles'), { recursive: true });
-  
-  console.log('Created dist/ folder structure:');
-  console.log('  - components/     (React components)');
-  console.log('  - assets/         (Logos, favicons, images)');
-  console.log('  - styles/         (CSS and theme files)');
+  for (const dir of [
+    outputDir,
+    path.join(outputDir, 'components'),
+    path.join(outputDir, 'assets', 'logos'),
+    path.join(outputDir, 'assets', 'favicons'),
+    path.join(outputDir, 'styles'),
+  ]) {
+    await fs.mkdir(dir, { recursive: true });
+  }
+  logger.debug('Created dist/ structure');
 }
 
-/**
- * Saves the complete design package to the output directory.
- * @param {string} outputDir - The output directory path.
- * @param {Object} packageData - All data needed for the design package.
- */
-async function saveDesignPackage(outputDir, packageData) {
-  const { designData, colors, reactComponents, fragmentComponents, archetypes, assets } = packageData;
-  
-  // Merge archetype and fragment components
+/** @param {string} outputDir @param {Object} pkg */
+async function saveDesignPackage(outputDir, pkg) {
+  const { designData, colors, reactComponents, fragmentComponents, archetypes, assets } = pkg;
   const allComponents = { ...reactComponents, ...fragmentComponents };
-  
-  // 1. Save documentation
-  const designDoc = generateDesignDoc(designData);
-  await fs.writeFile(path.join(outputDir, 'DESIGN.md'), designDoc);
-  
-  // 2. Save Tailwind configuration
-  const twConfig = generateTailwindConfig(designData, colors);
-  await fs.writeFile(path.join(outputDir, 'tailwind.config.js'), twConfig);
-  
-  // 3. Save theme CSS
-  const themeCss = generateThemeCSS(designData);
-  await fs.writeFile(path.join(outputDir, 'styles', 'theme.css'), themeCss);
-  
-  // 4. Save React components
+
+  await fs.writeFile(path.join(outputDir, 'DESIGN.md'),          generateDesignDoc(designData));
+  await fs.writeFile(path.join(outputDir, 'tailwind.config.js'), generateTailwindConfig(designData, colors));
+  await fs.writeFile(path.join(outputDir, 'styles', 'theme.css'), generateThemeCSS(designData));
+
   for (const [name, code] of Object.entries(allComponents)) {
     await fs.writeFile(path.join(outputDir, 'components', `${name}.jsx`), code);
   }
-  
-  // 5. Save component library index and README
-  const componentIndex = generateComponentIndex(allComponents);
-  await fs.writeFile(path.join(outputDir, 'components', 'index.js'), componentIndex);
-  
-  const componentReadme = generateComponentReadme(allComponents, archetypes);
-  await fs.writeFile(path.join(outputDir, 'components', 'README.md'), componentReadme);
-  
-  // 6. Save package.json for the design system
-  const packageJson = generatePackageJson();
-  await fs.writeFile(path.join(outputDir, 'package.json'), packageJson);
-  
-  // 7. Save main README
-  const mainReadme = generateMainReadme(designData, allComponents, assets);
-  await fs.writeFile(path.join(outputDir, 'README.md'), mainReadme);
-  
-  console.log('Saved all design package files successfully!');
-}
 
-/**
- * Generates theme CSS content.
- * @param {Object} designData - Design tokens.
- * @returns {string} - CSS content.
- */
-function generateThemeCSS(designData) {
-  return `:root {
-  /* Color tokens */
-  --primary: ${designData.colorTokens?.primaryAction || '#3b82f6'};
-  --secondary: ${designData.colorTokens?.secondaryAction || '#8b5cf6'};
-  --surface: ${designData.colorTokens?.surface || '#ffffff'};
-  --text-main: ${designData.colorTokens?.textMain || '#000000'};
-  --text-muted: ${designData.colorTokens?.textMuted || '#6b7280'};
-  
-  /* Spacing tokens */
-  --base-unit: ${designData.spatialTokens?.baseUnit || 8}px;
-  --container-padding: ${designData.spatialTokens?.containerPadding || 16}px;
-  --max-width: ${designData.spatialTokens?.maxWidth || 1280}px;
-  
-  /* Interaction tokens */
-  --hover-color-shift: ${designData.interactionTokens?.hover?.colorShift || 'lighten'};
-  --hover-background-shift: ${designData.interactionTokens?.hover?.backgroundColorShift || 'darken'};
-  --hover-transform: ${designData.interactionTokens?.hover?.transformEffect || 'scale(1.05)'};
-  --hover-shadow: ${designData.interactionTokens?.hover?.shadowEffect || '0 4px 8px rgba(0,0,0,0.1)'};
-}
+  await fs.writeFile(path.join(outputDir, 'components', 'index.js'), generateComponentIndex(allComponents));
+  await fs.writeFile(path.join(outputDir, 'components', 'README.md'), generateComponentReadme(allComponents, archetypes));
+  await fs.writeFile(path.join(outputDir, 'package.json'), generatePackageJson());
+  await fs.writeFile(path.join(outputDir, 'README.md'), generateMainReadme(designData, allComponents, assets));
 
-/* Base styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  color: var(--text-main);
-  background-color: var(--surface);
-}
-`;
-}
-
-/**
- * Generates package.json for the design system.
- * @returns {string} - package.json content.
- */
-function generatePackageJson() {
-  const pkg = {
-    name: "extracted-design-system",
-    version: "1.0.0",
-    description: "Design system extracted and generated automatically",
-    main: "components/index.js",
-    scripts: {
-      build: "echo 'Build your components here'",
-      dev: "echo 'Start your dev server here'"
-    },
-    peerDependencies: {
-      react: "^18.0.0",
-      "react-dom": "^18.0.0"
-    },
-    devDependencies: {
-      tailwindcss: "^3.0.0",
-      autoprefixer: "^10.0.0",
-      postcss: "^8.0.0"
-    }
-  };
-  
-  return JSON.stringify(pkg, null, 2);
-}
-
-/**
- * Generates main README for the design package.
- * @param {Object} designData - Design tokens.
- * @param {Object} reactComponents - Generated components.
- * @param {Object} assets - Extracted assets.
- * @returns {string} - README content.
- */
-function generateMainReadme(designData, reactComponents, assets) {
-  const componentCount = Object.keys(reactComponents).length;
-  
-  return `# Extracted Design System
-
-This design system was automatically extracted and generated from a website.
-
-## Contents
-
-- **Components:** ${componentCount} React components
-- **Design Tokens:** Colors, spacing, typography, and interaction patterns
-- **Assets:** Logos, favicons, and brand assets
-- **Configuration:** Tailwind CSS configuration
-
-## Quick Start
-
-1. Install dependencies:
-\`\`\`bash
-npm install
-\`\`\`
-
-2. Import components:
-\`\`\`javascript
-import { Button, Card } from './components';
-\`\`\`
-
-3. Use Tailwind configuration:
-\`\`\`javascript
-// tailwind.config.js
-module.exports = require('./tailwind.config.js');
-\`\`\`
-
-## Structure
-
-\`\`\`
-dist/
-├── components/       # React components
-├── assets/          # Logos, favicons, images
-├── styles/          # CSS and theme files
-├── tailwind.config.js
-├── DESIGN.md        # Design system documentation
-└── README.md        # This file
-\`\`\`
-
-## Design Tokens
-
-### Colors
-- Primary: ${designData.colorTokens?.primaryAction || '#3b82f6'}
-- Secondary: ${designData.colorTokens?.secondaryAction || '#8b5cf6'}
-- Surface: ${designData.colorTokens?.surface || '#ffffff'}
-
-### Spacing
-- Base Unit: ${designData.spatialTokens?.baseUnit || 8}px
-- Container Padding: ${designData.spatialTokens?.containerPadding || 16}px
-- Max Width: ${designData.spatialTokens?.maxWidth || 1280}px
-
-## Components
-
-See \`components/README.md\` for detailed component documentation.
-
-## Customization
-
-All components accept a \`className\` prop for additional styling. Design tokens can be customized in \`tailwind.config.js\` and \`styles/theme.css\`.
-
-## License
-
-Generated design system - check original source for licensing information.
-`;
+  logger.info('All design package files saved');
 }
 
 module.exports = { extractDesign };
