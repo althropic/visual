@@ -160,9 +160,9 @@ async function mapSemanticRoles(data) {
     
     return JSON.parse(content);
   } catch (error) {
-    console.error('LLM API Error:', error.message);
-    console.error('Using fallback semantic mapping...');
-    
+    logger.error(`LLM API error: ${error.message}`);
+    logger.warn('Falling back to deterministic semantic mapping');
+
     // Fallback: return a basic structure based on the data
     return {
       colorTokens: {
