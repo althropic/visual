@@ -36,15 +36,15 @@ async function tryHover(page, selector) {
   try {
     await page.hover(selector);
     return true;
-  } catch (_) {}
+  } catch (_e) {}
   try {
     await page.hover(selector, { force: true });
     return true;
-  } catch (_) {}
+  } catch (_e) {}
   try {
     await page.hover(selector, { position: { x: 5, y: 5 } });
     return true;
-  } catch (_) {}
+  } catch (_e) {}
   return false;
 }
 
