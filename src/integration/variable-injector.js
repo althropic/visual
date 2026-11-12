@@ -1,5 +1,4 @@
 const fs = require('fs').promises;
-const path = require('path');
 
 /**
  * Generates CSS variable injection code for React/TypeScript projects.
