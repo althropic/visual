@@ -9,7 +9,7 @@ const { logger } = require('../logger');
  * @returns {string}
  */
 function escapeCSS(str) {
-  return str.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+  return str.replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g, '\\$&');
 }
 
 /**
