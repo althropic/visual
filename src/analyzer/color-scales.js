@@ -48,7 +48,7 @@ function generateAdvancedScale(baseColor, steps = 11) {
       scaleMap[key] = scale[Math.min(index * stepSize, scale.length - 1)];
     });
     return scaleMap;
-  } catch (_) {
+  } catch (_e) {
     return generateScale(baseColor);
   }
 }
