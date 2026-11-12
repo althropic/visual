@@ -51,13 +51,10 @@ function log(levelName, message, ...args) {
   const formatted = `[${ts}] ${tag} ${message}`;
 
   if (levelName === 'error') {
-    // eslint-disable-next-line no-console
     console.error(formatted, ...args);
   } else if (levelName === 'warn') {
-    // eslint-disable-next-line no-console
     console.warn(formatted, ...args);
   } else {
-    // eslint-disable-next-line no-console
     console.log(formatted, ...args);
   }
 }
