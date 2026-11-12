@@ -83,7 +83,7 @@ function categorizePatternGroup(basePattern, group) {
 
   const { tagName, className = '' } = sample;
   const childCount = (sample.children || []).length;
-  const styles = generateStyleSpecifications(sample.styles, 'atom'); // placeholder; overridden below
+  generateStyleSpecifications(sample.styles, 'atom'); // placeholder call — result overridden per-type below
 
   const makeData = (type, role) => ({
     role,
