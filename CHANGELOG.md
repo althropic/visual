@@ -9,12 +9,30 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
-- `src/config.js` — central frozen config object; all env-var reads and hardcoded defaults now live here
-- `src/logger.js` — levelled logger (`debug/info/warn/error`); replaces all `console.*` in `src/`
-- `src/generator/templates.js` — extracted inline template generators (`generateThemeCSS`, `generatePackageJson`, `generateMainReadme`) from `src/index.js`
-- `.env.example` — documents every supported environment variable with descriptions and defaults
-- Jest test runner (`jest@30`); `npm test` now runs the suite
-- `tests/` rewritten to Jest `describe`/`test` syntax with proper assertions
+- `src/generator/tailwind-tokens.js` — Tailwind scale mapper: converts extracted px/rem values to nearest named tokens (`p-4`, `rounded-lg`, `max-w-7xl`), falling back to arbitrary-value syntax (`p-[18px]`) when no named token is close enough
+- `src/generator/fragment-prompts.js` — extracted from `fragment-components.js`; owns `buildFragmentPrompt`
+- `src/generator/fragment-fallbacks.js` — extracted from `fragment-components.js`; owns `generateFragmentComponentName` + `generateFallbackFragmentComponent`
+- `eslint.config.mjs` — ESLint flat config with `no-console: error` targeting `src/`; test, bin, and logger files have appropriate overrides
+- `.github/workflows/ci.yml` — CI pipeline: lint + unit tests on every push/PR; Playwright browser tests on main/master only
+- ARIA & accessibility pass on all fallback generators: `button` gets `type="button"` + `aria-label` prop; `input` gets correct `type` + `id` + `aria-label`; `a` gets `aria-label`; `img` gets required `alt`; `nav`/`header`/`footer`/`main`/`aside` get landmark roles; interactive elements get `focus-visible:ring-2` focus ring
+- `jest@30.5.2` added to `devDependencies`; `npm test` and `npm run test:unit` scripts wired up
+- `tests/setup.js` — silences dotenv startup noise in test output
+
+### Changed
+- `src/generator/fragment-components.js` — slim orchestrator (177 → 69 lines); uses `config.llm.*` instead of `process.env`; all errors go through `logger`
+- `src/generator/component-fallbacks.js` — ARIA attributes + token-mapped spacing/radius classes replacing arbitrary px values
+- `src/generator/component-prompts.js` — LLM prompts now explicitly instruct ARIA attributes and focus-ring classes per element type
+- `src/analyzer/spatial.js` — removed unused `stats` and `config` imports
+- `src/analyzer/typography.js` — fixed duplicate `*/` parse error; removed unused `config` import
+- `src/analyzer/archetype-classifiers.js` — eliminated unused `styles` variable
+- `src/analyzer/color-scales.js`, `src/analyzer/colors.js` — renamed catch variables to `_e` for ESLint compliance
+- `src/generator/templates.js` — renamed unused `assets` param to `_assets`
+- `src/index.js` — renamed empty catch variable to `_e` with inline comment
+- `src/integration/variable-injector.js` — removed unused `path` import
+- `src/llm/client.js` — renamed unused NDJSON catch variable to `_e`
+- `src/logger.js` — removed stale `eslint-disable-next-line` comments (now covered by ESLint config override)
+- `src/scraper/hover-capture.js` — renamed `_` catch variables to `_e`; fixed unnecessary escape in regex
+- `README.md` — added CI badge
 
 ### Changed
 - `src/index.js` — wires config and logger; trimmed from 271 to ~130 lines by extracting templates
