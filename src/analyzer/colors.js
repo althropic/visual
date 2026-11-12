@@ -20,7 +20,7 @@ function analyzeColors(styleData) {
       try {
         const hex = chroma(color).hex();
         colorCounts[hex] = (colorCounts[hex] || 0) + 1;
-      } catch (_) { /* skip invalid */ }
+      } catch (_e) { /* skip invalid */ }
     });
   });
 
