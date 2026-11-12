@@ -85,7 +85,7 @@ function generatePackageJson() {
  * @param {Object} assets - Extracted asset data.
  * @returns {string}
  */
-function generateMainReadme(designData, allComponents, assets) {
+function generateMainReadme(designData, allComponents, _assets) {
   const c = designData.colorTokens || {};
   const s = designData.spatialTokens || {};
   const componentCount = Object.keys(allComponents).length;
