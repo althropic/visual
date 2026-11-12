@@ -67,8 +67,8 @@ async function makeRawAPICall(messages, model) {
         if (parsed.done === true) {
           break;
         }
-      } catch (e) {
-        // Skip invalid lines
+      } catch (_e) {
+        // Skip invalid NDJSON lines
       }
     }
     
