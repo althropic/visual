@@ -10,8 +10,19 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:unit": "jest --testPathPatterns=\"colors|spatial|llm|integration\"",
+    "lint": "eslint src/",
     "extract": "node bin/cli.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "setupFiles": [
+      "<rootDir>/tests/setup.js"
+    ]
   },
   "keywords": [
     "design-system",
