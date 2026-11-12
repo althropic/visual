@@ -34,6 +34,13 @@ REQUIREMENTS:
 2. Include hover states if hover data exists
 3. Make it reusable with props
 4. Use semantic HTML
+5. Add correct ARIA attributes for the element type:
+   - <button>: type="button", aria-label prop
+   - <input>: appropriate type, id prop, aria-label prop
+   - <a>: aria-label prop
+   - <img>: alt prop (required)
+   - <nav>: aria-label prop
+   - Interactive elements: include focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500
 
 Return ONLY the component code, no markdown, no explanations.`;
 }
