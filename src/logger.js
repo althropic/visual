@@ -24,7 +24,6 @@ let currentLevel = LEVELS.info;
 function setLevel(levelName) {
   const resolved = LEVELS[levelName.toLowerCase()];
   if (resolved === undefined) {
-    // eslint-disable-next-line no-console
     console.warn(`[logger] Unknown level "${levelName}", keeping "${getLevel()}"`);
     return;
   }
