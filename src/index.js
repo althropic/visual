@@ -92,7 +92,7 @@ async function extractDesign(url, outputDir = config.output.defaultOutputDir) {
     throw error;
   } finally {
     if (scrapeResult?.browser) {
-      try { await scrapeResult.browser.close(); } catch (_) {}
+      try { await scrapeResult.browser.close(); } catch (_e) { /* non-fatal */ }
     }
   }
 }
