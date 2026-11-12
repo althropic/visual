@@ -1,7 +1,5 @@
 'use strict';
 
-const stats = require('simple-statistics');
-const { config } = require('../config');
 
 /**
  * Extracts and analyzes spatial patterns from element style data.
