@@ -72,6 +72,7 @@ Requirements:
 3. Make it flexible with props for content
 4. Use semantic HTML structure
 5. Include responsive design considerations
+6. Add ARIA attributes appropriate to the element type (aria-label for nav, role for landmarks)
 
 Return ONLY the component code, no explanations.`;
 }
