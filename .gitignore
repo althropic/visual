@@ -1,25 +1,44 @@
-# IDE
-.vscode/
-.kiro/
-.clinerules
+# Secrets
+.env
+.env.*
+!.env.example
 
-# Documentation (keep local)
-.md/*.md
+# Markdown — whitelist tracked files
+*.md
 !README.md
+!CHANGELOG.md
+
+# Runtime output
+logs/
+temp/
+*.log
+
+# Project-specific ignores
+scripts/*.bat
+.rules
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.conda/
 
 # Node.js
 node_modules/
-package-lock.json
-.npm/
 
-# Environment
-.env
-.env.local
+# Test & coverage
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Testing
-coverage/
-.nyc_output/
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
-# Build
-dist/
-build/
+# Templates
+app_template
