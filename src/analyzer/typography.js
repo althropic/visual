@@ -1,12 +1,9 @@
 'use strict';
 
-const { config } = require('../config');
-
 /**
  * Analyzes typography patterns and calculates actual scale ratios.
  * @param {Array} styleData - Array of element style data from the scraper.
  * @returns {Object} - Typography analysis including computed scale ratio.
- */
  */
 function analyzeTypography(styleData) {
   const fontSizes = {};
