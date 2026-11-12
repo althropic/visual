@@ -103,7 +103,12 @@ Requirements:
 2. Create a layout shell that can contain other components via children prop
 3. Include responsive breakpoints
 4. Use semantic HTML5 elements
-5. Consider accessibility (ARIA labels if needed)
+5. Add ARIA landmark roles and labels:
+   - <nav>: aria-label prop
+   - <header>: role="banner"
+   - <footer>: role="contentinfo"
+   - <main>: role="main"
+   - <aside>: aria-label prop
 
 Return ONLY the component code, no explanations.`;
 }
